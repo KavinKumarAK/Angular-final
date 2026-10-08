@@ -1,0 +1,4785 @@
+This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of the entire repository's contents.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+public/
+  favicon.ico
+src/
+  app/
+    components/
+      character-canvas/
+        character-canvas.component.ts
+      code-peeker/
+        code-peeker.component.ts
+      customizer-panel/
+        customizer-panel.component.ts
+      header/
+        header.component.ts
+    models/
+      character.model.ts
+    services/
+      character-state.service.ts
+      sound-effects.service.ts
+    app.component.css
+    app.component.html
+    app.component.spec.ts
+    app.component.ts
+    app.config.ts
+  index.html
+  main.ts
+  styles.css
+.editorconfig
+.gitignore
+angular.json
+package.json
+README.md
+tsconfig.app.json
+tsconfig.json
+tsconfig.spec.json
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/app/components/character-canvas/character-canvas.component.ts">
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { CharacterStateService } from '../../services/character-state.service';
+
+@Component({
+  selector: 'app-character-canvas',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <div class="canvas-container card-glass">
+      <!-- Top Archetype Tag & Title Area -->
+      <div class="header-hud">
+        <div class="hud-top-meta">
+          <!-- Current Character Archetype Tag -->
+          <span class="archetype-tag" [style.borderColor]="state.selectedClass().badgeColor">
+            <span class="archetype-dot" [style.backgroundColor]="state.selectedClass().badgeColor"></span>
+            {{ state.selectedClass().name.toUpperCase() }}
+          </span>
+
+          <!-- Two-Way Binding Indicator Badge -->
+          <div class="code-indicator" (click)="openBindingsTab()" title="Click to view [(ngModel)] in Code Peeker">
+            <span class="pill-twoway">Two-Way: [(ngModel)]</span>
+          </div>
+        </div>
+
+        <!-- Bold Character Title (Cinzel Serif Uppercase) -->
+        <h2 class="character-bold-title">
+          {{ (state.characterName() || 'Nameless Hero').toUpperCase() }}
+        </h2>
+
+        <!-- Character Subtitle -->
+        <p class="character-subtitle">
+          {{ state.characterTitle() }}
+        </p>
+      </div>
+
+      <!-- Central Character Display Box -->
+      <div 
+        class="character-display-box"
+        (click)="state.triggerAttack()"
+        title="Click sprite to trigger Attack animation!"
+      >
+        <!-- Interactive 'Click Sprite to Attack' Action Button -->
+        <button 
+          class="attack-action-btn"
+          (click)="$event.stopPropagation(); state.triggerAttack()"
+          title="Trigger attack swing animation and sound"
+        >
+          <span class="attack-icon">⚔️</span>
+          <span>Click Sprite to Attack</span>
+        </button>
+
+        <!-- Overlay Annotated Code Badges -->
+        <div class="overlay-badge badge-top-left" (click)="$event.stopPropagation(); openBindingsTab()">
+          <span class="pill-signal">Property: [style.fill]="skinColor()"</span>
+        </div>
+
+        <div class="overlay-badge badge-bottom-left" (click)="$event.stopPropagation(); openDirectivesTab()">
+          <span class="pill-directive">Control Flow: &#64;if (powerActive())</span>
+        </div>
+
+        <!-- 2D SVG Character Preview (High-Detail Realistic Hero Avatar) -->
+        <svg
+          class="character-svg float-bob"
+          [class.anim-attacking]="state.isAttacking()"
+          viewBox="0 0 400 460"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <!-- Elemental Aura Gradients -->
+            <radialGradient id="flameGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FFF7ED" stop-opacity="0.95" />
+              <stop offset="35%" stop-color="#FF5E00" stop-opacity="0.7" />
+              <stop offset="70%" stop-color="#EF4444" stop-opacity="0.3" />
+              <stop offset="100%" stop-color="#7F1D1D" stop-opacity="0" />
+            </radialGradient>
+
+            <radialGradient id="frostGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+              <stop offset="35%" stop-color="#00D2FF" stop-opacity="0.75" />
+              <stop offset="70%" stop-color="#0284C7" stop-opacity="0.35" />
+              <stop offset="100%" stop-color="#082F49" stop-opacity="0" />
+            </radialGradient>
+
+            <radialGradient id="lightningGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#FEF9C3" stop-opacity="0.95" />
+              <stop offset="40%" stop-color="#FFE600" stop-opacity="0.7" />
+              <stop offset="75%" stop-color="#CA8A04" stop-opacity="0.3" />
+              <stop offset="100%" stop-color="#713F12" stop-opacity="0" />
+            </radialGradient>
+
+            <radialGradient id="voidGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#F5D0FE" stop-opacity="0.9" />
+              <stop offset="40%" stop-color="#A855F7" stop-opacity="0.7" />
+              <stop offset="75%" stop-color="#6B21A8" stop-opacity="0.35" />
+              <stop offset="100%" stop-color="#3B0764" stop-opacity="0" />
+            </radialGradient>
+
+            <!-- Metallic Shading Gradients for Realistic Armor & Weapons -->
+            <linearGradient id="metalPlate" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#94A3B8" />
+              <stop offset="30%" stop-color="#E2E8F0" />
+              <stop offset="60%" stop-color="#475569" />
+              <stop offset="100%" stop-color="#1E293B" />
+            </linearGradient>
+
+            <linearGradient id="goldTrim" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#FEF08A" />
+              <stop offset="40%" stop-color="#FACC15" />
+              <stop offset="80%" stop-color="#CA8A04" />
+              <stop offset="100%" stop-color="#854D0E" />
+            </linearGradient>
+
+            <linearGradient id="leatherTone" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#44403C" />
+              <stop offset="50%" stop-color="#292524" />
+              <stop offset="100%" stop-color="#1C1917" />
+            </linearGradient>
+
+            <linearGradient id="hairShade" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#475569" />
+              <stop offset="40%" stop-color="#334155" />
+              <stop offset="100%" stop-color="#0F172A" />
+            </linearGradient>
+
+            <radialGradient id="eyeIris" cx="40%" cy="40%" r="60%">
+              <stop offset="0%" stop-color="#38BDF8" />
+              <stop offset="65%" stop-color="#0284C7" />
+              <stop offset="100%" stop-color="#082F49" />
+            </radialGradient>
+
+            <!-- Glow / Neon Filters -->
+            <filter id="neonBlur" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
+            </filter>
+          </defs>
+
+          <!-- Ground Contact Shadow -->
+          <ellipse cx="200" cy="425" rx="85" ry="14" fill="rgba(0, 0, 0, 0.6)" />
+
+          <!-- CONTROL FLOW SHOWCASE: @if (state.powerActive()) renders the Aura -->
+          @if (state.powerActive()) {
+            <g class="power-aura-group">
+              @if (state.selectedPower().element === 'flame') {
+                <circle cx="200" cy="225" r="145" fill="url(#flameGlow)" />
+                <circle cx="200" cy="225" r="118" stroke="#FF5E00" stroke-width="2" stroke-dasharray="8 6" opacity="0.8" class="aura-spinner" />
+                <polygon points="190,75 200,45 210,75" fill="#FF5E00" opacity="0.85" />
+                <polygon points="110,180 85,160 115,165" fill="#FF5E00" opacity="0.85" />
+                <polygon points="290,180 315,160 285,165" fill="#FF5E00" opacity="0.85" />
+              } @else if (state.selectedPower().element === 'frost') {
+                <circle cx="200" cy="225" r="145" fill="url(#frostGlow)" />
+                <circle cx="200" cy="225" r="120" stroke="#00D2FF" stroke-width="2.5" stroke-dasharray="14 10" opacity="0.85" class="aura-spinner" />
+                <polygon points="195,65 200,40 205,65 200,90" fill="#BAE6FD" />
+                <polygon points="100,170 75,175 100,180 120,175" fill="#BAE6FD" />
+                <polygon points="300,170 325,175 300,180 280,175" fill="#BAE6FD" />
+              } @else if (state.selectedPower().element === 'lightning') {
+                <circle cx="200" cy="225" r="145" fill="url(#lightningGlow)" />
+                <polyline points="180,55 195,90 185,110 215,145" stroke="#FFE600" stroke-width="3" fill="none" />
+                <polyline points="85,195 115,210 100,225 135,235" stroke="#FFE600" stroke-width="3" fill="none" />
+                <polyline points="315,195 285,210 300,225 265,235" stroke="#FFE600" stroke-width="3" fill="none" />
+              } @else {
+                <circle cx="200" cy="225" r="150" fill="url(#voidGlow)" />
+                <circle cx="200" cy="225" r="122" stroke="#C084FC" stroke-width="3" stroke-dasharray="20 12" opacity="0.85" class="aura-spinner-reverse" />
+              }
+            </g>
+          }
+
+          <!-- Back Layer: Flowing Cape / Robe Back -->
+          @if (state.selectedOutfit().type === 'robe') {
+            <path d="M 150 205 Q 120 340 135 410 Q 200 425 265 410 Q 280 340 250 205 Z" fill="#2E1065" opacity="0.95" />
+          } @else if (state.selectedOutfit().type === 'plate') {
+            <path d="M 155 205 Q 130 320 140 395 Q 200 405 260 395 Q 270 320 245 205 Z" fill="#991B1B" opacity="0.8" />
+          }
+
+          <!-- REALISTIC CHARACTER ANATOMY -->
+          <g id="realistic-body">
+            <!-- 1. Legs & Armored Greaves -->
+            <!-- Left Leg -->
+            <path d="M 162 315 L 160 380 L 150 415 L 188 415 L 188 380 L 192 315 Z" [style.fill]="state.selectedOutfit().baseColor" stroke="#0F172A" stroke-width="1.5" />
+            <!-- Right Leg -->
+            <path d="M 208 315 L 212 380 L 212 415 L 250 415 L 240 380 L 238 315 Z" [style.fill]="state.selectedOutfit().baseColor" stroke="#0F172A" stroke-width="1.5" />
+
+            <!-- Knee Guards (Poleyns) -->
+            <circle cx="174" cy="355" r="9" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="1" />
+            <circle cx="226" cy="355" r="9" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="1" />
+
+            <!-- Armored Boots / Sabatons with Soles -->
+            <path d="M 148 408 L 188 408 L 192 422 L 142 422 Z" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="1.5" />
+            <path d="M 212 408 L 252 408 L 258 422 L 208 422 Z" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="1.5" />
+            <!-- Sole Tread -->
+            <line x1="140" y1="422" x2="194" y2="422" stroke="#0F172A" stroke-width="3" />
+            <line x1="206" y1="422" x2="260" y2="422" stroke="#0F172A" stroke-width="3" />
+
+            <!-- 2. Heroic Torso & Chest Armor -->
+            <!-- Tapered Athletic Torso -->
+            <path d="M 148 185 Q 140 250 162 315 L 238 315 Q 260 250 252 185 Z" [style.fill]="state.selectedOutfit().baseColor" stroke="#0F172A" stroke-width="1.5" />
+
+            <!-- Detailed Layered Outfit Variations -->
+            @if (state.selectedOutfit().type === 'plate') {
+              <!-- Paladin Heavy Cuirass with Beveled Breastplate -->
+              <path d="M 152 188 Q 200 215 248 188 L 240 270 Q 200 295 160 270 Z" fill="url(#metalPlate)" stroke="#EAB308" stroke-width="2" />
+              <!-- Golden Lion / Radiant Crest -->
+              <polygon points="200,215 208,235 200,248 192,235" fill="url(#goldTrim)" />
+              <circle cx="200" cy="235" r="4" fill="#EF4444" />
+              <!-- Armor Segment Lines & Rivets -->
+              <path d="M 165 240 Q 200 255 235 240" fill="none" stroke="#EAB308" stroke-width="1.5" />
+              <circle cx="160" cy="205" r="2.5" fill="#FEF08A" />
+              <circle cx="240" cy="205" r="2.5" fill="#FEF08A" />
+              <!-- Gilded Belt & Buckle -->
+              <rect x="160" y="295" width="80" height="15" rx="3" fill="#1C1917" stroke="#EAB308" stroke-width="1.5" />
+              <rect x="192" y="292" width="16" height="21" rx="2" fill="url(#goldTrim)" stroke="#0F172A" stroke-width="1" />
+              <!-- Hanging Armored Tassets (Hip Guards) -->
+              <polygon points="162,310 188,310 182,340 166,340" fill="url(#metalPlate)" stroke="#EAB308" stroke-width="1" />
+              <polygon points="212,310 238,310 234,340 218,340" fill="url(#metalPlate)" stroke="#EAB308" stroke-width="1" />
+            } @else if (state.selectedOutfit().type === 'robe') {
+              <!-- Archmage Velvet Robe with Cascading Rune Stoles -->
+              <path d="M 172 188 L 172 335 L 228 335 L 228 188 Z" [style.fill]="state.selectedOutfit().trimColor" />
+              <!-- Gold Celestial Stole Trim -->
+              <line x1="172" y1="188" x2="172" y2="335" stroke="url(#goldTrim)" stroke-width="3" />
+              <line x1="228" y1="188" x2="228" y2="335" stroke="url(#goldTrim)" stroke-width="3" />
+              <!-- Embroidered Runes on Stole -->
+              <text x="195" y="240" font-size="14" fill="#FEF08A" font-family="serif">✦</text>
+              <text x="195" y="275" font-size="14" fill="#FEF08A" font-family="serif">❖</text>
+              <text x="195" y="310" font-size="14" fill="#FEF08A" font-family="serif">✦</text>
+              <!-- Glowing Mana Brooch -->
+              <circle cx="200" cy="205" r="10" fill="#00D2FF" stroke="#FFFFFF" stroke-width="2" filter="url(#neonBlur)" />
+              <!-- Flowing Sash Belt -->
+              <rect x="160" y="285" width="80" height="12" rx="2" fill="url(#goldTrim)" />
+              <path d="M 188 297 L 184 350 L 196 350 L 192 297 Z" fill="url(#goldTrim)" />
+            } @else if (state.selectedOutfit().type === 'cyber') {
+              <!-- Hyperdrive Cyber Suit with Hex Panels & Reactor Core -->
+              <path d="M 160 195 L 200 220 L 240 195 L 235 285 L 200 305 L 165 285 Z" fill="#0F172A" stroke="#00D2FF" stroke-width="2" />
+              <!-- Illuminated Glowing Conduits -->
+              <line x1="170" y1="205" x2="195" y2="245" stroke="#00D2FF" stroke-width="3.5" filter="url(#neonBlur)" />
+              <line x1="230" y1="205" x2="205" y2="245" stroke="#00D2FF" stroke-width="3.5" filter="url(#neonBlur)" />
+              <line x1="200" y1="260" x2="200" y2="300" stroke="#00D2FF" stroke-width="3" filter="url(#neonBlur)" />
+              <!-- Arc Reactor Chest Core -->
+              <polygon points="200,230 216,245 200,260 184,245" fill="#00D2FF" stroke="#FFFFFF" stroke-width="2" filter="url(#neonBlur)" />
+              <circle cx="200" cy="245" r="4" fill="#FFFFFF" />
+              <!-- High-tech Belt -->
+              <rect x="162" y="295" width="76" height="14" rx="3" fill="#1E293B" stroke="#00D2FF" stroke-width="1.5" />
+            } @else {
+              <!-- Rogue Midnight Leathers with Crossed Bandolier & Daggers -->
+              <path d="M 152 190 L 248 190 L 240 290 L 160 290 Z" fill="url(#leatherTone)" stroke="#10B981" stroke-width="1.5" />
+              <!-- Crossed Weapon Straps -->
+              <line x1="152" y1="195" x2="240" y2="285" stroke="#78716C" stroke-width="7" />
+              <line x1="152" y1="195" x2="240" y2="285" stroke="#44403C" stroke-width="3" />
+              <line x1="248" y1="195" x2="160" y2="285" stroke="#78716C" stroke-width="7" />
+              <line x1="248" y1="195" x2="160" y2="285" stroke="#44403C" stroke-width="3" />
+              <!-- Throwing Daggers on Harness -->
+              <polygon points="180,225 186,238 183,248 177,235" fill="#E2E8F0" stroke="#0F172A" stroke-width="1" />
+              <polygon points="214,225 220,238 217,248 211,235" fill="#E2E8F0" stroke="#0F172A" stroke-width="1" />
+              <circle cx="200" cy="240" r="8" [style.fill]="state.selectedOutfit().trimColor" stroke="#FEF08A" stroke-width="1.5" />
+            }
+
+            <!-- 3. Pauldrons (Shoulder Guards) -->
+            <!-- Left Pauldron (3-Tier Layered Plate) -->
+            <path d="M 130 180 Q 148 168 165 185 L 160 215 Q 140 225 125 205 Z" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="2" />
+            <path d="M 125 200 Q 140 215 155 205 L 150 225 Q 135 235 122 220 Z" [style.fill]="state.selectedOutfit().baseColor" stroke="#0F172A" stroke-width="1.5" />
+
+            <!-- Right Pauldron -->
+            <path d="M 270 180 Q 252 168 235 185 L 240 215 Q 260 225 275 205 Z" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="2" />
+            <path d="M 275 200 Q 260 215 245 205 L 250 225 Q 265 235 278 220 Z" [style.fill]="state.selectedOutfit().baseColor" stroke="#0F172A" stroke-width="1.5" />
+
+            <!-- 4. Athletic Neck & Collarbones -->
+            <path d="M 186 168 L 186 195 Q 200 200 214 195 L 214 168 Z" [style.fill]="state.skinColor()" />
+            <!-- Neck shadow under chin -->
+            <polygon points="186,168 214,168 206,182 194,182" fill="rgba(0,0,0,0.22)" />
+            <!-- Collarbone lines -->
+            <path d="M 178 194 Q 192 198 200 196 Q 208 198 222 194" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="2" stroke-linecap="round" />
+
+            <!-- 5. Sculpted Head & Facial Anatomy (Bound to skinColor()) -->
+            <!-- Natural Jawline and Chin -->
+            <path d="M 166 120 C 164 150 175 174 200 174 C 225 174 236 150 234 120 C 234 85 166 85 166 120 Z" [style.fill]="state.skinColor()" stroke="#0F172A" stroke-width="1.5" />
+
+            <!-- Left Ear -->
+            <path d="M 166 122 C 160 122 159 138 166 142 Z" [style.fill]="state.skinColor()" stroke="#0F172A" stroke-width="1" />
+            <!-- Right Ear -->
+            <path d="M 234 122 C 240 122 241 138 234 142 Z" [style.fill]="state.skinColor()" stroke="#0F172A" stroke-width="1" />
+
+            <!-- Stylized Anime/RPG Eyes & Facial Features -->
+            <g class="hero-face">
+              <!-- Eyebrows (Heroic Tilted Arch) -->
+              <path d="M 174 120 Q 185 116 192 121" fill="none" stroke="#1E293B" stroke-width="3" stroke-linecap="round" />
+              <path d="M 226 120 Q 215 116 208 121" fill="none" stroke="#1E293B" stroke-width="3" stroke-linecap="round" />
+
+              <!-- Left Eye (Sclera, Iris with Depth, Highlights) -->
+              <ellipse cx="184" cy="130" rx="8" ry="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.2" />
+              <circle cx="184" cy="130" r="4.5" fill="url(#eyeIris)" />
+              <circle cx="184" cy="130" r="2.2" fill="#0B0E14" />
+              <!-- Specular Reflections (Life in Eyes) -->
+              <circle cx="182.5" cy="128.5" r="1.5" fill="#FFFFFF" />
+              <circle cx="185.5" cy="132" r="0.8" fill="#FFFFFF" />
+              <!-- Upper Eyelid Crease -->
+              <path d="M 176 127 Q 184 123 192 127" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" />
+
+              <!-- Right Eye -->
+              <ellipse cx="216" cy="130" rx="8" ry="6" fill="#FFFFFF" stroke="#0F172A" stroke-width="1.2" />
+              <circle cx="216" cy="130" r="4.5" fill="url(#eyeIris)" />
+              <circle cx="216" cy="130" r="2.2" fill="#0B0E14" />
+              <!-- Specular Reflections -->
+              <circle cx="214.5" cy="128.5" r="1.5" fill="#FFFFFF" />
+              <circle cx="217.5" cy="132" r="0.8" fill="#FFFFFF" />
+              <!-- Upper Eyelid Crease -->
+              <path d="M 208 127 Q 216 123 224 127" fill="none" stroke="#0F172A" stroke-width="2" stroke-linecap="round" />
+
+              <!-- Sculpted Nose Bridge & Nostril Shadow -->
+              <path d="M 200 128 L 198 142 L 202 143" fill="none" stroke="rgba(0,0,0,0.35)" stroke-width="2" stroke-linecap="round" />
+
+              <!-- Determined Heroic Mouth & Lower Lip Shadow -->
+              <path d="M 193 154 Q 200 157 207 154" fill="none" stroke="#0F172A" stroke-width="2.5" stroke-linecap="round" />
+              <path d="M 197 158 Q 200 160 203 158" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1.5" />
+            </g>
+
+            <!-- Dynamic Layered Hero Hair -->
+            <g id="hero-hair">
+              <!-- Back Hair Tufts -->
+              <path d="M 164 105 Q 155 130 162 145 Q 165 125 168 115 Z" fill="url(#hairShade)" />
+              <path d="M 236 105 Q 245 130 238 145 Q 235 125 232 115 Z" fill="url(#hairShade)" />
+              <!-- Forehead Swept Hair Locks -->
+              <path d="M 166 112 Q 175 90 200 90 Q 225 90 234 112 Q 225 102 215 105 Q 200 95 185 105 Q 175 102 166 112 Z" fill="url(#hairShade)" />
+              <path d="M 175 95 L 180 115 L 188 100 L 196 116 L 205 98 L 214 115 L 222 96 Z" fill="url(#hairShade)" />
+            </g>
+
+            <!-- 6. Articulated Left Arm (Holding Weapon) -->
+            <!-- Bicep & Forearm -->
+            <path d="M 145 195 Q 118 230 102 268" fill="none" stroke-width="20" [style.stroke]="state.skinColor()" stroke-linecap="round" />
+            <!-- Vambrace / Arm Bracer -->
+            <path d="M 132 215 L 102 265 L 112 272 L 142 222 Z" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="1.5" />
+            <!-- Articulated Gauntlet Hand with Fingers around Grip -->
+            <circle cx="100" cy="270" r="13" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="2" />
+            <!-- Knuckle Guards -->
+            <rect x="92" y="263" width="16" height="6" rx="2" fill="url(#goldTrim)" />
+
+            <!-- 7. Articulated Right Arm (Heroic Combat Pose) -->
+            <path d="M 255 195 Q 282 230 298 268" fill="none" stroke-width="20" [style.stroke]="state.skinColor()" stroke-linecap="round" />
+            <path d="M 268 215 L 298 265 L 288 272 L 258 222 Z" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="1.5" />
+            <circle cx="300" cy="270" r="13" [style.fill]="state.selectedOutfit().trimColor" stroke="#0F172A" stroke-width="2" />
+            <rect x="292" y="263" width="16" height="6" rx="2" fill="url(#goldTrim)" />
+          </g>
+
+          <!-- REALISTIC HEADGEAR LAYER -->
+          <g id="realistic-headgear">
+            @if (state.selectedHat().type === 'helm') {
+              <!-- Viking War Helm with Realistic Curved Horns & Nasal Guard -->
+              <!-- Chainmail Coif Back -->
+              <path d="M 160 115 Q 155 160 170 172 Q 200 178 230 172 Q 245 160 240 115 Z" fill="#475569" stroke="#1E293B" stroke-width="1.5" stroke-dasharray="2 2" />
+              <!-- Steel Spangenhelm Dome -->
+              <path d="M 162 125 C 162 70 238 70 238 125 Z" fill="url(#metalPlate)" stroke="#1E293B" stroke-width="2" />
+              <!-- Brass Reinforced Brow Band with Rivets -->
+              <path d="M 160 118 Q 200 112 240 118 L 240 128 Q 200 122 160 128 Z" fill="url(#goldTrim)" stroke="#0F172A" stroke-width="1.5" />
+              <circle cx="170" cy="123" r="2" fill="#0B0E14" />
+              <circle cx="185" cy="121" r="2" fill="#0B0E14" />
+              <circle cx="200" cy="120" r="2" fill="#0B0E14" />
+              <circle cx="215" cy="121" r="2" fill="#0B0E14" />
+              <circle cx="230" cy="123" r="2" fill="#0B0E14" />
+              <!-- Nasal Guard down over nose -->
+              <polygon points="196,124 204,124 202,142 198,142" fill="url(#metalPlate)" stroke="#1E293B" stroke-width="1.5" />
+
+              <!-- Left 3D Dragon/Ram Horn with Ridges -->
+              <path d="M 165 116 C 135 105 105 60 118 35 C 136 60 148 92 168 108 Z" fill="#F8FAFC" stroke="#475569" stroke-width="2" />
+              <line x1="152" y1="95" x2="140" y2="85" stroke="#94A3B8" stroke-width="1.5" />
+              <line x1="142" y1="78" x2="130" y2="68" stroke="#94A3B8" stroke-width="1.5" />
+              <line x1="130" y1="60" x2="122" y2="52" stroke="#94A3B8" stroke-width="1.5" />
+
+              <!-- Right 3D Dragon/Ram Horn with Ridges -->
+              <path d="M 235 116 C 265 105 295 60 282 35 C 264 60 252 92 232 108 Z" fill="#F8FAFC" stroke="#475569" stroke-width="2" />
+              <line x1="248" y1="95" x2="260" y2="85" stroke="#94A3B8" stroke-width="1.5" />
+              <line x1="258" y1="78" x2="270" y2="68" stroke="#94A3B8" stroke-width="1.5" />
+              <line x1="270" y1="60" x2="278" y2="52" stroke="#94A3B8" stroke-width="1.5" />
+            } @else if (state.selectedHat().type === 'wizard') {
+              <!-- Starseeker Wizard Hat with Sweeping Brim & Astral Folds -->
+              <!-- Wide Sweeping Flapped Brim -->
+              <path d="M 120 128 C 145 110 255 110 280 128 C 260 142 140 142 120 128 Z" fill="#1E1B4B" stroke="#4338CA" stroke-width="2" />
+              <!-- Tall Crumpled Arcane Cone -->
+              <path d="M 152 122 Q 190 28 238 12 Q 212 65 248 122 Z" fill="#312E81" stroke="#6366F1" stroke-width="2" />
+              <!-- Gold Moon Buckle & Belt -->
+              <path d="M 154 118 Q 200 110 246 118 L 244 126 Q 200 118 156 126 Z" fill="url(#goldTrim)" />
+              <circle cx="200" cy="119" r="8" fill="#FFE600" stroke="#CA8A04" stroke-width="1.5" />
+              <circle cx="203" cy="119" r="6" fill="#312E81" />
+              <!-- Glowing Stardust Charm at the Tip -->
+              <polygon points="238,8 242,16 250,17 244,22 246,30 238,26 230,30 232,22 226,17 234,16" fill="#FFE600" filter="url(#neonBlur)" />
+            } @else if (state.selectedHat().type === 'visor') {
+              <!-- Neon Cyber Visor with Holographic HUD Reticle -->
+              <path d="M 156 118 Q 200 114 244 118 L 242 142 Q 200 148 158 142 Z" fill="#0B0E14" stroke="#00D2FF" stroke-width="2.5" />
+              <!-- Neon HUD Scanline -->
+              <line x1="162" y1="130" x2="238" y2="130" stroke="#00D2FF" stroke-width="3" filter="url(#neonBlur)" />
+              <!-- Targeting Hex Reticle in Visor Center -->
+              <polygon points="200,124 205,127 205,133 200,136 195,133 195,127" fill="none" stroke="#FFE600" stroke-width="1.5" />
+              <!-- Side Carbon Fiber Temple Earpieces -->
+              <rect x="152" y="122" width="8" height="18" rx="2" fill="#334155" stroke="#00D2FF" stroke-width="1" />
+              <rect x="240" y="122" width="8" height="18" rx="2" fill="#334155" stroke="#00D2FF" stroke-width="1" />
+            } @else if (state.selectedHat().type === 'crown') {
+              <!-- Crown of Radiance with Filigree & Bejeweled Gemstones -->
+              <path d="M 158 126 L 162 88 L 178 110 L 200 75 L 222 110 L 238 88 L 242 126 Z" fill="url(#goldTrim)" stroke="#854D0E" stroke-width="2" />
+              <!-- Central Crimson Ruby -->
+              <polygon points="200,85 206,94 200,103 194,94" fill="#EF4444" stroke="#FFFFFF" stroke-width="1" filter="url(#neonBlur)" />
+              <!-- Left Sapphire -->
+              <circle cx="166" cy="98" r="4" fill="#3B82F6" stroke="#FFFFFF" stroke-width="0.8" />
+              <!-- Right Sapphire -->
+              <circle cx="234" cy="98" r="4" fill="#3B82F6" stroke="#FFFFFF" stroke-width="0.8" />
+              <!-- Lower Filigree Rim Jewels -->
+              <circle cx="180" cy="120" r="3" fill="#10B981" />
+              <circle cx="200" cy="119" r="3.5" fill="#FFE600" />
+              <circle cx="220" cy="120" r="3" fill="#10B981" />
+            } @else {
+              <!-- Shinobi Cowl with Ninja Mask -->
+              <path d="M 152 135 C 146 75 254 75 248 135 C 244 155 230 168 200 168 C 170 168 156 155 152 135 Z" fill="#18181B" stroke="#27272A" stroke-width="2" />
+              <!-- Face Mask covering lower face -->
+              <path d="M 166 138 Q 200 134 234 138 L 228 168 Q 200 172 172 168 Z" fill="#27272A" stroke="#10B981" stroke-width="1.5" />
+              <!-- Trailing Ninja Scarf billowing back -->
+              <path d="M 235 155 Q 275 140 305 160 Q 280 175 240 165 Z" fill="#10B981" opacity="0.9" />
+            }
+          </g>
+
+          <!-- WEAPON LAYER (Left Hand at x=100, y=270) -->
+          <g id="realistic-weapon" transform="translate(100, 270) rotate(-15)">
+            @if (state.selectedWeapon().type === 'sword') {
+              <!-- Infernal Sunblade: Dragon-Guard Broadsword with Fire Core -->
+              <!-- Pommel & Leather Wrapped Grip -->
+              <circle cx="0" cy="35" r="7" fill="url(#goldTrim)" stroke="#0F172A" stroke-width="1.5" />
+              <rect x="-4" y="0" width="8" height="35" rx="2" fill="#78350F" />
+              <!-- Ornate Dragon Crossguard -->
+              <path d="M -26 -2 Q 0 -10 26 -2 L 20 8 Q 0 2 -20 8 Z" fill="url(#goldTrim)" stroke="#0F172A" stroke-width="1.5" />
+              <circle cx="0" cy="2" r="5" fill="#EF4444" />
+              <!-- Flaming Solar Blade -->
+              <path d="M -10 -6 L 0 -145 L 10 -6 Z" fill="#FF5E00" stroke="#FF5E00" stroke-width="2" filter="url(#neonBlur)" />
+              <path d="M -5 -6 L 0 -135 L 5 -6 Z" fill="#FFE600" />
+              <line x1="0" y1="-6" x2="0" y2="-125" stroke="#FFFFFF" stroke-width="2" />
+            } @else if (state.selectedWeapon().type === 'staff') {
+              <!-- Glacial Scepter: Runic Silver Staff with Floating Azure Diamond -->
+              <line x1="0" y1="65" x2="0" y2="-130" stroke="#0284C7" stroke-width="8" stroke-linecap="round" />
+              <line x1="0" y1="60" x2="0" y2="-125" stroke="#38BDF8" stroke-width="3" stroke-linecap="round" />
+              <!-- Gold Astral Prongs Framing the Floating Gem -->
+              <path d="M -16 -120 Q -24 -145 0 -168 Q 24 -145 16 -120" fill="none" stroke="url(#goldTrim)" stroke-width="3" />
+              <!-- Floating Azure Diamond -->
+              <polygon points="0,-182 18,-150 0,-118 -18,-150" fill="#00D2FF" stroke="#FFFFFF" stroke-width="2" filter="url(#neonBlur)" />
+              <circle cx="0" cy="-150" r="5" fill="#FFFFFF" />
+            } @else if (state.selectedWeapon().type === 'bow') {
+              <!-- Thunderbolt Recurve Bow (CORRECTED: Facing Forward/Outward to Left, Arrow Aiming Away from Body) -->
+              <!-- Ergonomic Central Riser Grip in Hand -->
+              <rect x="-4" y="-18" width="8" height="36" rx="3" fill="#1C1917" stroke="url(#goldTrim)" stroke-width="1.5" />
+
+              <!-- Recurve Limbs Arched FORWARD to the Left (Toward Target at Negative X) -->
+              <!-- Upper Limb bending outward to left and curving forward -->
+              <path d="M 0 -18 Q -38 -65 -32 -115 Q -28 -125 -18 -130" fill="none" stroke="#FFE600" stroke-width="7" stroke-linecap="round" filter="url(#neonBlur)" />
+              <path d="M 0 -18 Q -38 -65 -32 -115 Q -28 -125 -18 -130" fill="none" stroke="#CA8A04" stroke-width="3" stroke-linecap="round" />
+
+              <!-- Lower Limb bending outward to left and curving forward -->
+              <path d="M 0 18 Q -38 65 -32 115 Q -28 125 -18 130" fill="none" stroke="#FFE600" stroke-width="7" stroke-linecap="round" filter="url(#neonBlur)" />
+              <path d="M 0 18 Q -38 65 -32 115 Q -28 125 -18 130" fill="none" stroke="#CA8A04" stroke-width="3" stroke-linecap="round" />
+
+              <!-- Bowstring connecting Limb Tips at Inner Position -->
+              <line x1="-18" y1="-130" x2="-18" y2="130" stroke="#FEF08A" stroke-width="2" stroke-dasharray="6 2" />
+
+              <!-- CHARGED LIGHTNING ARROW: Nocked on string & pointing FORWARD (Left / Negative X into Battlefield) -->
+              <!-- Shaft pointing from string (-18) forward to broadhead (-90) -->
+              <line x1="8" y1="0" x2="-90" y2="0" stroke="#00D2FF" stroke-width="3.5" filter="url(#neonBlur)" />
+              <line x1="8" y1="0" x2="-90" y2="0" stroke="#FFFFFF" stroke-width="1.5" />
+              <!-- Broadhead Arrowhead Pointing Left (-X) -->
+              <polygon points="-90,0 -76,-8 -80,0 -76,8" fill="#00D2FF" stroke="#FFFFFF" stroke-width="1.5" filter="url(#neonBlur)" />
+              <!-- Arrow Fletchings at String End -->
+              <polygon points="5,-6 8,0 5,6 0,0" fill="#FFE600" />
+              <polygon points="-5,-6 -2,0 -5,6 -10,0" fill="#FFE600" />
+            } @else if (state.selectedWeapon().type === 'scythe') {
+              <!-- Void Eclipse Scythe with Curved Energy Blade -->
+              <path d="M 0 65 Q -6 -60 0 -150" stroke="#4C1D95" stroke-width="8" fill="none" stroke-linecap="round" />
+              <!-- Curved Void Blade -->
+              <path d="M 0 -140 Q -65 -175 -110 -130 Q -50 -120 0 -110 Z" fill="#A855F7" stroke="#C084FC" stroke-width="2.5" filter="url(#neonBlur)" />
+              <circle cx="-50" cy="-135" r="8" fill="#C084FC" filter="url(#neonBlur)" />
+            } @else if (state.selectedWeapon().type === 'daggers') {
+              <!-- Twin Venom Daggers -->
+              <rect x="-4" y="0" width="8" height="25" fill="#047857" rx="2" />
+              <path d="M -7 0 L 0 -80 L 7 0 Z" fill="#10B981" stroke="#34D399" stroke-width="2" filter="url(#neonBlur)" />
+              <path d="M 12 12 L 25 -55 L 22 12 Z" fill="#059669" stroke="#34D399" stroke-width="1.5" filter="url(#neonBlur)" />
+            } @else {
+              <!-- Cosmic Wand with Spinning Star Gyroscope -->
+              <line x1="0" y1="35" x2="0" y2="-95" stroke="#BE185D" stroke-width="6" stroke-linecap="round" />
+              <circle cx="0" cy="-105" r="16" fill="#F43F5E" stroke="#FFFFFF" stroke-width="2" filter="url(#neonBlur)" />
+              <circle cx="0" cy="-105" r="7" fill="#FFE600" />
+            }
+          </g>
+        </svg>
+      </div>
+
+      <!-- Combat Power Footer: Dynamic Stat Box calculating total power using computed() -->
+      <div class="combat-power-footer">
+        <div class="combat-footer-header">
+          <div class="footer-title-wrap">
+            <span class="combat-title">COMBAT POWER</span>
+            <span class="pill-computed">computed()</span>
+          </div>
+          <span class="synergy-status-badge" [class.synergy-glow]="state.weaponSynergy().active">
+            {{ state.weaponSynergy().level }}
+          </span>
+        </div>
+
+        <div class="power-value-row">
+          <div class="main-power-box">
+            <span class="power-number">{{ state.totalAttackPower() }}</span>
+            <span class="power-label">TOTAL ATK</span>
+          </div>
+
+          <div class="power-breakdown-chips">
+            <div class="chip-item">
+              <span class="chip-k">DEF</span>
+              <span class="chip-v">{{ state.defenseRating() }}</span>
+            </div>
+            <div class="chip-item">
+              <span class="chip-k">CRIT</span>
+              <span class="chip-v">{{ state.critChance() }}%</span>
+            </div>
+            <div class="chip-item">
+              <span class="chip-k">MANA</span>
+              <span class="chip-v">{{ state.manaPool() }} MP</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Power Gauge Bar -->
+        <div class="gauge-bar-track">
+          <div 
+            class="gauge-bar-fill"
+            [style.width.%]="Math.min(100, (state.totalAttackPower() / 160) * 100)"
+          ></div>
+        </div>
+
+        <div class="footer-synergy-desc">
+          <span>{{ state.weaponSynergy().description }} ({{ state.weaponSynergy().bonus }})</span>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .canvas-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      padding: 1.35rem;
+      background: #161923;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.85rem;
+      position: relative;
+    }
+
+    .header-hud {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      background: #0B0E14;
+      padding: 0.85rem 1.25rem;
+      border-radius: 0.65rem;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .hud-top-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      margin-bottom: 0.4rem;
+    }
+
+    .archetype-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      background: rgba(11, 14, 20, 0.9);
+      border: 1px solid;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      letter-spacing: 0.06em;
+    }
+
+    .archetype-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      box-shadow: 0 0 6px currentColor;
+    }
+
+    .code-indicator {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .code-indicator:hover {
+      transform: scale(1.05);
+    }
+
+    .character-bold-title {
+      font-family: var(--font-rpg);
+      font-size: 1.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #FFFFFF;
+      margin: 0.2rem 0 0.15rem 0;
+      text-shadow: 0 0 16px rgba(0, 210, 255, 0.45);
+      word-break: break-word;
+    }
+
+    .character-subtitle {
+      font-size: 0.82rem;
+      color: #00D2FF;
+      font-weight: 600;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    /* Central Character Display Box */
+    .character-display-box {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at 50% 60%, #1A1F2C 0%, #0B0E14 80%);
+      border-radius: 0.75rem;
+      border: 1px solid var(--border-subtle);
+      min-height: 385px;
+      cursor: pointer;
+      overflow: hidden;
+      user-select: none;
+      transition: border-color 0.25s;
+    }
+
+    .character-display-box:hover {
+      border-color: rgba(0, 210, 255, 0.45);
+    }
+
+    .attack-action-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(11, 14, 20, 0.85);
+      border: 1px solid rgba(0, 210, 255, 0.4);
+      border-radius: 0.45rem;
+      padding: 0.35rem 0.65rem;
+      color: #00D2FF;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: var(--font-code);
+      cursor: pointer;
+      z-index: 20;
+      transition: all 0.2s;
+    }
+
+    .attack-action-btn:hover {
+      background: #00D2FF;
+      color: #0B0E14;
+      box-shadow: 0 0 14px rgba(0, 210, 255, 0.6);
+      transform: scale(1.04);
+    }
+
+    .attack-icon {
+      font-size: 0.85rem;
+    }
+
+    /* Annotated Code Badges Overlays */
+    .overlay-badge {
+      position: absolute;
+      z-index: 15;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .overlay-badge:hover {
+      transform: translateY(-2px) scale(1.04);
+    }
+
+    .badge-top-left {
+      top: 14px;
+      left: 14px;
+    }
+
+    .badge-bottom-left {
+      bottom: 14px;
+      left: 14px;
+    }
+
+    .character-svg {
+      width: 100%;
+      max-width: 380px;
+      height: 370px;
+      transform-origin: center bottom;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .aura-spinner {
+      animation: spin 14s linear infinite;
+      transform-origin: 200px 220px;
+    }
+
+    .aura-spinner-reverse {
+      animation: spinReverse 16s linear infinite;
+      transform-origin: 200px 220px;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes spinReverse {
+      from { transform: rotate(360deg); }
+      to { transform: rotate(0deg); }
+    }
+
+    /* Combat Power Footer */
+    .combat-power-footer {
+      background: #0B0E14;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.65rem;
+      padding: 0.95rem 1.15rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+
+    .combat-footer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .footer-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .combat-title {
+      font-family: var(--font-rpg);
+      font-size: 0.85rem;
+      font-weight: 800;
+      color: #E2E8F0;
+      letter-spacing: 0.06em;
+    }
+
+    .synergy-status-badge {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #94A3B8;
+      background: #161923;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.25rem;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .synergy-glow {
+      color: #FFE600 !important;
+      border-color: rgba(255, 230, 0, 0.4) !important;
+      box-shadow: 0 0 10px rgba(255, 230, 0, 0.25);
+    }
+
+    .power-value-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .main-power-box {
+      display: flex;
+      align-items: baseline;
+      gap: 0.45rem;
+    }
+
+    .power-number {
+      font-family: var(--font-code);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #00D2FF;
+      line-height: 1;
+      text-shadow: 0 0 16px rgba(0, 210, 255, 0.6);
+    }
+
+    .power-label {
+      font-family: var(--font-code);
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #94A3B8;
+    }
+
+    .power-breakdown-chips {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .chip-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #161923;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.35rem;
+      padding: 0.3rem 0.6rem;
+      min-width: 52px;
+    }
+
+    .chip-k {
+      font-family: var(--font-code);
+      font-size: 0.62rem;
+      color: #64748B;
+      font-weight: 700;
+    }
+
+    .chip-v {
+      font-family: var(--font-code);
+      font-size: 0.85rem;
+      color: #E2E8F0;
+      font-weight: 800;
+    }
+
+    .gauge-bar-track {
+      width: 100%;
+      height: 8px;
+      background: #161923;
+      border-radius: 9999px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .gauge-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #3B82F6, #00D2FF, #A855F7);
+      border-radius: 9999px;
+      transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+      box-shadow: 0 0 12px rgba(0, 210, 255, 0.8);
+    }
+
+    .footer-synergy-desc {
+      font-size: 0.72rem;
+      color: #94A3B8;
+      line-height: 1.3;
+    }
+  `]
+})
+export class CharacterCanvasComponent {
+  state = inject(CharacterStateService);
+  Math = Math;
+
+  openBindingsTab(): void {
+    this.state.openCodePeekerWithTab('bindings');
+  }
+
+  openDirectivesTab(): void {
+    this.state.openCodePeekerWithTab('directives');
+  }
+}
+</file>
+
+<file path="src/app/components/code-peeker/code-peeker.component.ts">
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { CharacterStateService } from '../../services/character-state.service';
+
+/* ---------- tiny syntax highlighter (escape first, then colour tokens) ---------- */
+const esc = (s: string): string =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+const TS_TOKENS =
+  /(?<comment>\/\/[^\n]*)|(?<str>'[^'\n]*')|(?<decl>\breadonly\s+\w+)|(?<call>\b(?:signal|computed|Math\.round)\b)|(?<kw>\b(?:readonly|const|let|return|if|this)\b)|(?<type>\b(?:string|boolean|number|RpgStats|HatItem|WeaponItem)\b)|(?<num>\b\d+(?:\.\d+)?\b)|(?<bool>\b(?:true|false)\b)/g;
+
+const HTML_TOKENS =
+  /(?<comment>&lt;!--[\s\S]*?--&gt;)|(?<str>"[^"\n]*")|(?<bind>\[\(?[\w.-]+\)?\]|\([\w.-]+\))(?==)|(?<attr>\b[\w-]+)(?==")|(?<ctl>@(?:else if|if|else|for)\b|\btrack\b)|(?<tag>&lt;\/?[\w-]+)|(?<interp>\{\{[^}\n]*\}\})/g;
+
+const TS_STYLE: Record<string, string> = {
+  comment: 'color:#64748b',
+  str: 'color:#a5f3fc',
+  call: 'color:#22c55e',
+  kw: 'color:#a855f7',
+  type: 'color:#fbbf24',
+  num: 'color:#f87171',
+  bool: 'color:#f43f5e'
+};
+
+const HTML_STYLE: Record<string, string> = {
+  comment: 'color:#64748b',
+  str: 'color:#a5f3fc',
+  attr: 'color:#38bdf8',
+  ctl: 'color:#c084fc;font-weight:bold',
+  tag: 'color:#f43f5e',
+  interp: 'color:#fde047'
+};
+
+const HOT = 'background:#fbbf2433;color:#fde047;padding:2px 4px;border-radius:4px';
+
+function paint(code: string, lang: 'ts' | 'html', hotName = ''): string {
+  const styles = lang === 'ts' ? TS_STYLE : HTML_STYLE;
+  const re = lang === 'ts' ? TS_TOKENS : HTML_TOKENS;
+
+  return esc(code).replace(re, (...args: unknown[]) => {
+    const text = args[0] as string;
+    const groups = args[args.length - 1] as Record<string, string | undefined>;
+    const kind = Object.keys(groups).find((k) => groups[k] !== undefined) ?? '';
+
+    if (kind === 'decl') {
+      const m = /^(readonly)(\s+)(\w+)$/.exec(text);
+      if (m) {
+        const nameStyle = m[3] === hotName ? HOT : 'color:#38bdf8';
+        return `<span style="color:#a855f7">${m[1]}</span>${m[2]}<span style="${nameStyle}">${m[3]}</span>`;
+      }
+    }
+
+    if (kind === 'bind') {
+      const style = text.startsWith('[(')
+        ? 'color:#fbbf24;font-weight:bold'    // banana in a box
+        : text.startsWith('[')
+          ? 'color:#38bdf8;font-weight:bold'  // property / class binding
+          : 'color:#10b981;font-weight:bold'; // event binding
+      return `<span style="${style}">${text}</span>`;
+    }
+
+    return `<span style="${styles[kind] ?? ''}">${text}</span>`;
+  });
+}
+
+@Component({
+  selector: 'app-code-peeker',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <!-- Floating Action Trigger (Bottom Right) -->
+    @if (!state.codePeekerOpen()) {
+      <button
+        class="floating-peeker-trigger"
+        (click)="state.toggleCodePeeker()"
+        title="Open Live Angular Code Peeker (Esc closes it)"
+      >
+        <span class="pulse-ring"></span>
+        <span class="trigger-icon">👀</span>
+        <span class="trigger-label">See How Angular Does This!</span>
+      </button>
+    }
+
+    <!-- Slide-Over Drawer Backdrop -->
+    @if (state.codePeekerOpen()) {
+      <div class="drawer-backdrop" (click)="state.toggleCodePeeker()"></div>
+    }
+
+    <!-- Slide-Over Drawer Container -->
+    <aside
+      class="drawer-panel"
+      [class.drawer-active]="state.codePeekerOpen()"
+      [class.presenter-large]="state.presenterMode()"
+      [attr.aria-hidden]="!state.codePeekerOpen()"
+    >
+      <!-- Drawer Header -->
+      <div class="drawer-header">
+        <div class="drawer-title-group">
+          <span class="drawer-badge">ANGULAR 18+ ARCHITECTURE</span>
+          <h2 class="drawer-title">Live Code Peeker</h2>
+        </div>
+
+        <div class="drawer-actions">
+          <div class="font-zoom-group" title="Adjust code font size for projector">
+            <button class="zoom-btn" (click)="adjustFontSize(-1)">A-</button>
+            <button class="zoom-btn" (click)="adjustFontSize(1)">A+</button>
+          </div>
+
+          <button class="close-btn" (click)="state.toggleCodePeeker()" title="Close Drawer (Esc)" aria-label="Close code peeker">
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Reactive Signal Change Notification Pill -->
+      <div class="signal-alert-banner">
+        <span class="alert-pulse">⚡</span>
+        <span class="alert-text">
+          Live Reactive Node: <strong>{{ state.lastUpdatedSignal().name }}()</strong>
+          &rarr; updated to <em class="alert-value">"{{ state.lastUpdatedSignal().value }}"</em>
+        </span>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="peeker-tabs">
+        <button
+          class="peeker-tab"
+          [class.tab-active]="state.activeCodeTab() === 'signals'"
+          (click)="state.setCodeTab('signals')"
+        >
+          <span class="tab-emoji">⚡</span>
+          <span>Signals &amp; Computed</span>
+        </button>
+
+        <button
+          class="peeker-tab"
+          [class.tab-active]="state.activeCodeTab() === 'bindings'"
+          (click)="state.setCodeTab('bindings')"
+        >
+          <span class="tab-emoji">🔗</span>
+          <span>Data Bindings</span>
+        </button>
+
+        <button
+          class="peeker-tab"
+          [class.tab-active]="state.activeCodeTab() === 'directives'"
+          (click)="state.setCodeTab('directives')"
+        >
+          <span class="tab-emoji">🔀</span>
+          <span>Control Flow</span>
+        </button>
+
+        <button
+          class="peeker-tab"
+          [class.tab-active]="state.activeCodeTab() === 'state'"
+          (click)="state.setCodeTab('state')"
+        >
+          <span class="tab-emoji">📊</span>
+          <span>Live State Tree</span>
+        </button>
+      </nav>
+
+      <!-- Tab Content 1: Signals & Computed -->
+      @if (state.activeCodeTab() === 'signals') {
+        <div class="tab-scroll-body">
+          <div class="concept-explanation">
+            <h4 class="concept-title">💡 What are Angular Signals?</h4>
+            <p class="concept-desc">
+              Signals are reactive state primitives introduced in Angular 16+ and fully mature in 18/19.
+              Unlike standard variables, Signals notify only the exact DOM nodes that depend on them,
+              eliminating heavy full-tree dirty checking!
+            </p>
+          </div>
+
+          <div class="code-card">
+            <div class="code-card-header">
+              <div class="header-left">
+                <div class="window-dots">
+                  <span class="w-dot dot-red"></span>
+                  <span class="w-dot dot-yellow"></span>
+                  <span class="w-dot dot-green"></span>
+                </div>
+                <span class="filename">character-state.service.ts</span>
+              </div>
+              <div class="header-right">
+                <span class="scroll-hint-pill">↕ Scrollable Code</span>
+                <button class="copy-btn" (click)="copy(signalsCode())">
+                  {{ copied() ? '✓ Copied' : '📋 Copy' }}
+                </button>
+              </div>
+            </div>
+            <pre class="code-block" [style.fontSize.px]="codeFontSize()"><code [innerHTML]="signalsHtml()"></code></pre>
+          </div>
+
+          <div class="concept-explanation mt-4">
+            <h4 class="concept-title">🧮 What is computed()?</h4>
+            <p class="concept-desc">
+              <code>computed()</code> defines a memoized signal derived from other signals.
+              Notice how <code>totalAttackPower()</code> recalculated to
+              <strong>{{ state.totalAttackPower() }}</strong> automatically when you changed weapon or stats!
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- Tab Content 2: Data Bindings -->
+      @if (state.activeCodeTab() === 'bindings') {
+        <div class="tab-scroll-body">
+          <div class="banana-box-card">
+            <div class="banana-header">
+              <span class="banana-icon">🍌</span>
+              <span class="banana-title">The "Banana in a Box" Rule: [ ( ) ]</span>
+            </div>
+            <div class="banana-diagram">
+              <div class="diagram-step">
+                <span class="diagram-sym">[ &nbsp; ]</span>
+                <span class="diagram-name">Square Brackets (Box)</span>
+                <span class="diagram-sub">Property Binding: Component &rarr; HTML View</span>
+              </div>
+              <div class="diagram-divider">+</div>
+              <div class="diagram-step">
+                <span class="diagram-sym">( &nbsp; )</span>
+                <span class="diagram-name">Parentheses (Banana)</span>
+                <span class="diagram-sub">Event Binding: HTML View &rarr; Component</span>
+              </div>
+              <div class="diagram-divider">=</div>
+              <div class="diagram-step highlight-step">
+                <span class="diagram-sym">[ ( &nbsp; ) ]</span>
+                <span class="diagram-name">Banana in a Box</span>
+                <span class="diagram-sub">Two-Way Binding: [(ngModel)]="characterName"</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="code-card">
+            <div class="code-card-header">
+              <div class="header-left">
+                <div class="window-dots">
+                  <span class="w-dot dot-red"></span>
+                  <span class="w-dot dot-yellow"></span>
+                  <span class="w-dot dot-green"></span>
+                </div>
+                <span class="filename">bindings-showcase.component.html</span>
+              </div>
+              <div class="header-right">
+                <span class="scroll-hint-pill">↕ Scrollable Code</span>
+                <button class="copy-btn" (click)="copy(bindingsCode())">
+                  {{ copied() ? '✓ Copied' : '📋 Copy' }}
+                </button>
+              </div>
+            </div>
+            <pre class="code-block" [style.fontSize.px]="codeFontSize()"><code [innerHTML]="bindingsHtml()"></code></pre>
+          </div>
+        </div>
+      }
+
+      <!-- Tab Content 3: Modern Control Flow (@if and @for) -->
+      @if (state.activeCodeTab() === 'directives') {
+        <div class="tab-scroll-body">
+          <div class="concept-explanation">
+            <h4 class="concept-title">✨ Angular Modern Control Flow (&#64;if / &#64;for)</h4>
+            <p class="concept-desc">
+              Angular 17+ replaced legacy <code>*ngIf</code> and <code>*ngFor</code> with native template syntax.
+              It uses built-in JS grammar, requires 0 imports, and mandates <code>track</code> for blazing-fast DOM reconciliation!
+            </p>
+          </div>
+
+          <div class="code-card">
+            <div class="code-card-header">
+              <div class="header-left">
+                <div class="window-dots">
+                  <span class="w-dot dot-red"></span>
+                  <span class="w-dot dot-yellow"></span>
+                  <span class="w-dot dot-green"></span>
+                </div>
+                <span class="filename">character-canvas.component.html</span>
+              </div>
+              <div class="header-right">
+                <span class="scroll-hint-pill">↕ Scrollable Code</span>
+                <button class="copy-btn" (click)="copy(controlFlowCode())">
+                  {{ copied() ? '✓ Copied' : '📋 Copy' }}
+                </button>
+              </div>
+            </div>
+            <pre class="code-block" [style.fontSize.px]="codeFontSize()"><code [innerHTML]="controlFlowHtml()"></code></pre>
+          </div>
+        </div>
+      }
+
+      <!-- Tab Content 4: Live Reactive State Tree -->
+      @if (state.activeCodeTab() === 'state') {
+        <div class="tab-scroll-body">
+          <div class="concept-explanation">
+            <h4 class="concept-title">🔍 In-Memory Reactive State Tree</h4>
+            <p class="concept-desc">
+              Inspecting active signals and computed values in real-time as they live in memory:
+            </p>
+          </div>
+
+          <div class="code-card">
+            <div class="code-card-header">
+              <div class="header-left">
+                <div class="window-dots">
+                  <span class="w-dot dot-red"></span>
+                  <span class="w-dot dot-yellow"></span>
+                  <span class="w-dot dot-green"></span>
+                </div>
+                <span class="filename">live-reactive-state.json</span>
+              </div>
+              <div class="header-right">
+                <span class="scroll-hint-pill">↕ Scrollable JSON</span>
+                <button class="copy-btn" (click)="copy(stateJson())">
+                  {{ copied() ? '✓ Copied' : '📋 Copy' }}
+                </button>
+              </div>
+            </div>
+            <pre class="code-block" [style.fontSize.px]="codeFontSize()"><code>{{ stateJson() }}</code></pre>
+          </div>
+        </div>
+      }
+
+      <!-- Drawer Footer -->
+      <div class="drawer-footer">
+        <span class="footer-note">
+          Demonstrating <strong>Angular 18+ Standalone + Signals</strong> for Judges &amp; Students
+        </span>
+      </div>
+    </aside>
+  `,
+  styles: [`
+    /* Floating Action Trigger */
+    .floating-peeker-trigger {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.8rem 1.4rem;
+      background: linear-gradient(135deg, #00D2FF, #3B82F6);
+      color: #0B0E14;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 9999px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 25px -5px rgba(0, 210, 255, 0.5), 0 0 18px rgba(0, 210, 255, 0.35);
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .floating-peeker-trigger:hover {
+      transform: translateY(-3px) scale(1.04);
+      box-shadow: 0 14px 30px -5px rgba(0, 210, 255, 0.7), 0 0 24px rgba(0, 210, 255, 0.5);
+    }
+
+    .pulse-ring {
+      position: absolute;
+      left: 10px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #0B0E14;
+      box-shadow: 0 0 8px #00D2FF;
+      animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+
+    @keyframes ping {
+      75%, 100% {
+        transform: scale(2.2);
+        opacity: 0;
+      }
+    }
+
+    .trigger-icon {
+      font-size: 1.25rem;
+    }
+
+    /* Drawer Backdrop */
+    .drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+      z-index: 60;
+    }
+
+    /* Slide-Over Drawer */
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 600px;
+      max-width: 95vw;
+      background: #0B0E14;
+      border-left: 1px solid rgba(0, 210, 255, 0.35);
+      box-shadow: -15px 0 40px rgba(0, 0, 0, 0.85);
+      z-index: 70;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      visibility: hidden;           /* keeps closed drawer out of tab order */
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), visibility 0s linear 0.35s;
+    }
+
+    .drawer-active {
+      transform: translateX(0);
+      visibility: visible;
+      transition-delay: 0s;
+    }
+
+    .presenter-large {
+      width: 720px;
+      max-width: 98vw;
+      background: #060913;
+      border-left: 2px solid #38bdf8;
+    }
+
+    /* Drawer Header */
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.1rem 1.4rem;
+      border-bottom: 1px solid var(--border-dim);
+      background: rgba(15, 23, 42, 0.7);
+    }
+
+    .drawer-badge {
+      font-family: var(--font-code);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #38bdf8;
+      letter-spacing: 0.08em;
+    }
+
+    .drawer-title {
+      font-family: var(--font-rpg);
+      font-size: 1.3rem;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    .drawer-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+    }
+
+    .font-zoom-group {
+      display: flex;
+      border: 1px solid var(--border-dim);
+      border-radius: 0.375rem;
+      overflow: hidden;
+    }
+
+    .zoom-btn {
+      background: rgba(30, 41, 59, 0.8);
+      color: #cbd5e1;
+      border: none;
+      padding: 0.25rem 0.6rem;
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .zoom-btn:hover {
+      background: #38bdf8;
+      color: #000000;
+    }
+
+    .close-btn {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--border-dim);
+      color: #94a3b8;
+      width: 32px;
+      height: 32px;
+      border-radius: 0.375rem;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .close-btn:hover {
+      background: #ef4444;
+      color: #ffffff;
+      border-color: #ef4444;
+    }
+
+    /* Signal Alert Banner */
+    .signal-alert-banner {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.55rem 1.25rem;
+      background: linear-gradient(90deg, rgba(234, 179, 8, 0.15), rgba(249, 115, 22, 0.15));
+      border-bottom: 1px solid rgba(234, 179, 8, 0.25);
+      font-size: 0.8rem;
+    }
+
+    .alert-pulse {
+      color: #fbbf24;
+      font-size: 1rem;
+      animation: bounce 1.5s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .alert-text {
+      color: #cbd5e1;
+      font-family: var(--font-code);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .alert-value {
+      color: #38bdf8;
+      font-style: normal;
+      font-weight: 700;
+    }
+
+    /* Tabs */
+    .peeker-tabs {
+      display: flex;
+      background: rgba(15, 23, 42, 0.5);
+      border-bottom: 1px solid var(--border-dim);
+      overflow-x: auto;
+    }
+
+    .peeker-tab {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.75rem 1rem;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #94a3b8;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .peeker-tab:hover {
+      color: #f1f5f9;
+      background: rgba(30, 41, 59, 0.4);
+    }
+
+    .tab-active {
+      color: #38bdf8 !important;
+      border-bottom-color: #38bdf8 !important;
+      background: rgba(56, 189, 248, 0.08) !important;
+    }
+
+    /* Scrollable Tab Body */
+    .tab-scroll-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .concept-explanation {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.15);
+      border-radius: 0.5rem;
+      padding: 0.85rem;
+    }
+
+    .concept-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 0.35rem;
+    }
+
+    .concept-desc {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      line-height: 1.5;
+    }
+
+    .concept-desc code {
+      font-family: var(--font-code);
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 0.1rem 0.3rem;
+      border-radius: 0.25rem;
+    }
+
+    /* Code Card (Scrollable IDE Window) */
+    .code-card {
+      background: #060913;
+      border: 1px solid rgba(0, 210, 255, 0.25);
+      border-radius: 0.65rem;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .code-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0.85rem;
+      background: #111726;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 0.35rem;
+    }
+
+    .w-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+    .dot-red { background: #EF4444; }
+    .dot-yellow { background: #EAB308; }
+    .dot-green { background: #22C55E; }
+
+    .filename {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      color: #94A3B8;
+      font-weight: 600;
+    }
+
+    .scroll-hint-pill {
+      font-family: var(--font-code);
+      font-size: 0.65rem;
+      color: #00D2FF;
+      background: rgba(0, 210, 255, 0.12);
+      border: 1px solid rgba(0, 210, 255, 0.3);
+      padding: 0.12rem 0.45rem;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .copy-btn {
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #cbd5e1;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.25rem;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #00D2FF;
+      color: #0B0E14;
+      border-color: #00D2FF;
+    }
+
+    /* Scrollable Code Block Container (All 4 Tabs) */
+    .code-block {
+      padding: 1.1rem;
+      margin: 0;
+      font-family: var(--font-code);
+      line-height: 1.65;
+      color: #e2e8f0;
+      overflow-x: auto;
+      overflow-y: auto;
+      max-height: 380px;
+      white-space: pre;
+      background: #050811;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 210, 255, 0.45) #080D1A;
+    }
+
+    /* <code> must inherit the mono font, otherwise the browser default wins */
+    .code-block code {
+      font-family: inherit;
+    }
+
+    .code-block::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    .code-block::-webkit-scrollbar-track {
+      background: #080D1A;
+    }
+    .code-block::-webkit-scrollbar-thumb {
+      background: rgba(0, 210, 255, 0.4);
+      border-radius: 4px;
+    }
+    .code-block::-webkit-scrollbar-thumb:hover {
+      background: #00D2FF;
+    }
+
+    .presenter-large .code-block {
+      max-height: 480px;
+    }
+
+    /* Banana in a Box Diagram */
+    .banana-box-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.9), rgba(15, 23, 42, 0.95));
+      border: 1px solid rgba(234, 179, 8, 0.35);
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+
+    .banana-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .banana-icon {
+      font-size: 1.3rem;
+    }
+
+    .banana-title {
+      font-family: var(--font-rpg);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #fde047;
+    }
+
+    .banana-diagram {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .diagram-step {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border-dim);
+      border-radius: 0.5rem;
+      padding: 0.5rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .highlight-step {
+      background: rgba(234, 179, 8, 0.15);
+      border-color: #f59e0b;
+    }
+
+    .diagram-sym {
+      font-family: var(--font-code);
+      font-size: 1rem;
+      font-weight: 800;
+      color: #fbbf24;
+    }
+
+    .diagram-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .diagram-sub {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      color: #94a3b8;
+    }
+
+    .diagram-divider {
+      text-align: center;
+      color: #64748b;
+      font-weight: 800;
+      font-size: 0.9rem;
+    }
+
+    /* Drawer Footer */
+    .drawer-footer {
+      padding: 0.75rem 1.25rem;
+      border-top: 1px solid var(--border-dim);
+      background: rgba(15, 23, 42, 0.8);
+      text-align: center;
+    }
+
+    .footer-note {
+      font-size: 0.75rem;
+      color: #94a3b8;
+    }
+
+    .mt-4 {
+      margin-top: 1rem;
+    }
+  `]
+})
+export class CodePeekerComponent {
+  state = inject(CharacterStateService);
+  private sanitizer = inject(DomSanitizer);
+
+  codeFontSize = signal<number>(14);
+  copied = signal<boolean>(false);
+
+  @HostListener('document:keydown.escape')
+  closeOnEscape(): void {
+    if (this.state.codePeekerOpen()) this.state.toggleCodePeeker();
+  }
+
+  adjustFontSize(delta: number): void {
+    this.codeFontSize.update((sz) => Math.max(12, Math.min(22, sz + delta)));
+  }
+
+  async copy(text: string): Promise<void> {
+    try {
+      await navigator.clipboard.writeText(text);
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    } catch {
+      this.copied.set(false);
+    }
+  }
+
+  // Safe because paint() escapes all text (including the hero name) before adding <span>s.
+  private trust(html: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(html);
+  }
+
+  /* ---------- plain-text code (what "Copy" copies and what gets highlighted) ---------- */
+
+  readonly signalsCode = computed(() => {
+    const s = this.state;
+    const b = s.attackBreakdown();
+    const hat = s.selectedHat();
+    const st = s.stats();
+    const power = s.selectedPower();
+    const p = b.primaryKey;
+    const q = b.secondaryKey;
+
+    return `// 1. Writable Signals (State)
+readonly characterName = signal<string>('${s.characterName()}');
+readonly selectedWeapon = signal<WeaponItem>({ name: '${s.selectedWeapon().name}', baseDamage: ${b.base} });
+readonly selectedHat = signal<HatItem>({ name: '${hat.name}', strengthBonus: ${hat.strengthBonus}, agilityBonus: ${hat.agilityBonus}, magicBonus: ${hat.magicBonus} });
+readonly powerActive = signal<boolean>(${s.powerActive()});
+readonly stats = signal<RpgStats>({ strength: ${st.strength}, agility: ${st.agility}, magic: ${st.magic} });
+
+// 2. Computed Signal (re-runs only when a signal it reads changes)
+readonly totalAttackPower = computed(() => {
+  let damage = this.selectedWeapon().baseDamage;                          // ${b.base}
+  damage += (st.${p} + hat.${p}Bonus) * ${b.primaryMult};        // ${b.primaryTotal} * ${b.primaryMult} = ${b.primaryBonus.toFixed(1)}
+  damage += (st.${q} + hat.${q}Bonus) * ${b.secondaryMult};      // ${b.secondaryTotal} * ${b.secondaryMult} = ${b.secondaryBonus.toFixed(1)}
+  if (powerActive && power.element === weapon.element) damage += 18;      // ${b.synergy ? '+18 resonance ACTIVE' : 'no resonance'}
+  if (powerActive) damage *= ${power.powerMultiplier};                            // x${b.multiplier}
+  return Math.round(damage);                                              // => ${b.total}
+});`;
+  });
+
+  readonly bindingsCode = computed(() => {
+    const s = this.state;
+    return `<!-- 1. TWO-WAY BINDING: "banana in a box" [(ngModel)] -->
+<input
+  type="text"
+  [(ngModel)]="characterName"
+/>
+<!-- Live in-memory value: "${s.characterName()}" -->
+
+<!-- 2. PROPERTY BINDING: [style.fill] (component → DOM) -->
+<path
+  d="M 166 120 C 164 150 175 174 200 174 ..."
+  [style.fill]="skinColor()"
+/>
+<!-- Evaluates to: "${s.skinColor()}" -->
+
+<!-- 3. EVENT BINDING: (click) (DOM → component) -->
+<button (click)="setWeapon(weapon)">
+  Equip {{ weapon.name }}
+</button>
+<!-- Equipped right now: "${s.selectedWeapon().name}" -->
+
+<!-- 4. CLASS BINDING: [class.name] -->
+<button [class.card-active]="selectedWeapon().id === weapon.id">
+<!-- card-active is currently on: ${s.selectedWeapon().id} -->`;
+  });
+
+  readonly controlFlowCode = computed(() => {
+    const s = this.state;
+    return `<!-- 1. CONTROL FLOW: @if adds / removes DOM nodes -->
+@if (powerActive()) {
+  <g class="power-aura-group">
+    <circle r="145" fill="url(#${s.selectedPower().element}Glow)" />
+  </g>
+} @else {
+  <span>Power Dormant</span>
+}
+<!-- powerActive() is ${s.powerActive()} → ${s.powerActive() ? 'aura is mounted' : 'aura is removed from the DOM'} -->
+
+<!-- 2. CONTROL FLOW: @for loops, track is mandatory -->
+@for (w of weapons; track w.id) {
+  <button
+    [class.card-active]="selectedWeapon().id === w.id"
+    (click)="setWeapon(w)"
+  >
+    {{ w.symbolTag }} {{ w.name }}
+  </button>
+}`;
+  });
+
+  readonly stateJson = computed(() => {
+    const s = this.state;
+    return JSON.stringify(
+      {
+        characterName: s.characterName(),
+        characterTitle: s.characterTitle(),
+        selectedClass: s.selectedClass().name,
+        skinColor: s.skinColor(),
+        selectedHat: s.selectedHat().name,
+        selectedOutfit: s.selectedOutfit().name,
+        selectedWeapon: {
+          name: s.selectedWeapon().name,
+          element: s.selectedWeapon().element,
+          baseDamage: s.selectedWeapon().baseDamage
+        },
+        powerActive: s.powerActive(),
+        selectedPower: s.selectedPower().name,
+        stats: s.stats(),
+        availableStatPoints: s.availableStatPoints(),
+        attackBreakdown: s.attackBreakdown(),
+        defenseRating: s.defenseRating(),
+        critChance: s.critChance() + '%',
+        manaPool: s.manaPool() + ' MP',
+        weaponSynergy: s.weaponSynergy()
+      },
+      null,
+      2
+    );
+  });
+
+  /* ---------- highlighted HTML (memoised, so the DOM only updates when the code changes) ---------- */
+  readonly signalsHtml = computed(() =>
+    this.trust(paint(this.signalsCode(), 'ts', this.state.lastUpdatedSignal().name))
+  );
+  readonly bindingsHtml = computed(() => this.trust(paint(this.bindingsCode(), 'html')));
+  readonly controlFlowHtml = computed(() => this.trust(paint(this.controlFlowCode(), 'html')));
+}
+</file>
+
+<file path="src/app/components/customizer-panel/customizer-panel.component.ts">
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { DomSanitizer } from '@angular/platform-browser';
+import { CharacterStateService } from '../../services/character-state.service';
+import {
+  CLASSES,
+  HATS,
+  OUTFITS,
+  WEAPONS,
+  SPECIAL_POWERS,
+  SKIN_PALETTES,
+} from '../../models/character.model';
+
+@Component({
+  selector: 'app-customizer-panel',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  template: `
+    <div class="customizer-container card-glass">
+      <!-- Section 1 - Hero Identity -->
+      <div class="panel-section">
+        <div class="section-title-row">
+          <div class="title-group">
+            <h3 class="section-title">SECTION 1 - HERO IDENTITY</h3>
+            <span class="pill-twoway cursor-pointer" (click)="openBindingsTab()">
+              Two-Way: [(ngModel)]
+            </span>
+          </div>
+          <span class="section-subtext">Two-way reactive data stream</span>
+        </div>
+
+        <div class="name-input-container">
+          <input
+            type="text"
+            class="hero-name-input"
+            [(ngModel)]="heroName"
+            placeholder="Enter Hero Name..."
+            maxlength="24"
+          />
+        </div>
+      </div>
+
+      <!-- Section 2 - Class & Palette -->
+      <div class="panel-section">
+        <div class="section-title-row">
+          <div class="title-group">
+            <h3 class="section-title">SECTION 2 - CLASS &amp; PALETTE</h3>
+            <span class="pill-signal cursor-pointer" (click)="openSignalsTab()">
+              Signal: signal()
+            </span>
+          </div>
+        </div>
+
+        <!-- Class Grid -->
+        <div class="class-grid">
+          @for (cls of classes; track cls.id) {
+            <button
+              class="class-option-card card-glass-interactive"
+              [class.card-active]="state.selectedClass().id === cls.id"
+              (click)="state.setClass(cls)"
+            >
+              <div class="class-card-top">
+                <svg class="class-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" [innerHTML]="cls.icon"></svg>
+                <span class="class-primary-tag">{{ cls.primaryStat.toUpperCase() }}</span>
+              </div>
+              <div class="class-label-wrap">
+                <span class="class-label-name">{{ cls.name }}</span>
+                <span class="class-label-sub">({{ cls.primaryStat === 'strength' ? 'Strength' : cls.primaryStat === 'magic' ? 'Magic' : 'Agility' }})</span>
+              </div>
+            </button>
+          }
+        </div>
+
+        <!-- Skin Tone Selector -->
+        <div class="skin-tone-container">
+          <span class="tone-label">Skin Tone Selector:</span>
+          <div class="swatches-wrap">
+            @for (swatch of skinPalettes; track swatch.label) {
+              <button
+                class="tone-swatch"
+                [style.backgroundColor]="swatch.value"
+                [class.swatch-selected]="state.skinColor() === swatch.value"
+                (click)="state.setSkinColor(swatch.value)"
+                [title]="swatch.label"
+              ></button>
+            }
+            <label class="native-picker-btn" title="Custom Hex Color">
+              <input
+                type="color"
+                class="hidden-color-input"
+                [value]="state.skinColor()"
+                (input)="onColorInput($event)"
+              />
+              <svg class="picker-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.098 19.902a3.75 3.75 0 005.304 0l6.401-6.402M6.75 21A3.75 3.75 0 013 17.25c0-.585.132-1.139.367-1.636l10.58-10.58a2.25 2.25 0 013.182 0l2.122 2.121a2.25 2.25 0 010 3.182l-10.58 10.58c-.497.235-1.05.367-1.636.367z" />
+              </svg>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3 - Gear & Armor -->
+      <div class="panel-section">
+        <div class="section-title-row">
+          <div class="title-group">
+            <h3 class="section-title">SECTION 3 - GEAR &amp; ARMOR</h3>
+            <span class="pill-directive cursor-pointer" (click)="openDirectivesTab()">
+              Control Flow: &#64;for
+            </span>
+          </div>
+        </div>
+
+        <div class="gear-option-block">
+          <label class="gear-block-label">HEADGEAR / HELM OPTIONS:</label>
+          <div class="headgear-chips-grid">
+            @for (hat of displayedHats; track hat.id) {
+              <button
+                class="hat-chip-btn"
+                [class.chip-selected]="state.selectedHat().id === hat.id"
+                (click)="state.setHat(hat)"
+              >
+                <span class="chip-hat-name">{{ hat.name }}</span>
+                <span class="rarity-badge" [class]="'badge-' + hat.rarity">
+                  {{ hat.rarity }}
+                </span>
+              </button>
+            }
+          </div>
+        </div>
+
+        <div class="gear-option-block mt-3">
+          <label class="gear-block-label">BODY OUTFIT OPTIONS:</label>
+          <div class="outfit-radio-pills">
+            @for (outfit of displayedOutfits; track outfit.id) {
+              <button
+                class="radio-pill-btn"
+                [class.pill-selected]="state.selectedOutfit().id === outfit.id"
+                (click)="state.setOutfit(outfit)"
+              >
+                <span class="radio-indicator"></span>
+                <span class="outfit-pill-name">{{ outfit.name }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 4 - Weapon Arsenal -->
+      <div class="panel-section">
+        <div class="section-title-row">
+          <div class="title-group">
+            <h3 class="section-title">SECTION 4 - WEAPON ARSENAL</h3>
+            <span class="pill-directive cursor-pointer" (click)="openDirectivesTab()">
+              &#64;for (w of weapons; track w.id)
+            </span>
+          </div>
+        </div>
+
+        <div class="weapons-grid">
+          @for (weapon of weapons; track weapon.id) {
+            <button
+              class="weapon-card card-glass-interactive"
+              [class.card-active]="state.selectedWeapon().id === weapon.id"
+              (click)="state.setWeapon(weapon)"
+            >
+              <div class="weapon-top-row">
+                <span class="weapon-sym">{{ weapon.symbolTag }}</span>
+                <span class="weapon-dmg">{{ weapon.baseDamage }} DMG</span>
+              </div>
+              <div class="weapon-title">{{ weapon.name }}</div>
+              <div class="weapon-bottom-tags">
+                <span class="scaling-tag">Scales: {{ weapon.scalingStat.toUpperCase() }}</span>
+                <span class="element-tag" [class]="'elem-' + weapon.element">
+                  {{ weapon.element }}
+                </span>
+              </div>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Section 5 - Special Power & Stat Allocation -->
+      <div class="panel-section">
+        <div class="section-title-row">
+          <div class="title-group">
+            <h3 class="section-title">SECTION 5 - SPECIAL POWER &amp; STATS</h3>
+            <span class="pill-computed cursor-pointer" (click)="openSignalsTab()">
+              computed(() => ...)
+            </span>
+          </div>
+        </div>
+
+        <div class="power-toggle-strip">
+          <div class="power-text-wrap">
+            <span class="power-heading">Unleash Elemental Aura (&#64;if)</span>
+            <span class="power-subheading">Mounts animated SVG particles &amp; +25% combat power</span>
+          </div>
+          <button
+            class="switch-control"
+            [class.switch-active]="state.powerActive()"
+            (click)="state.togglePower()"
+          >
+            <span class="switch-ball"></span>
+          </button>
+        </div>
+
+        <div class="stat-pool-header">
+          <span class="stat-pool-title">RPG STAT POINTS:</span>
+          <span class="pool-points-badge">Points Left: <strong>{{ state.availableStatPoints() }}</strong></span>
+        </div>
+
+        <div class="stats-stepper-list">
+          <div class="stepper-row">
+            <span class="stat-lbl text-flame">⚔️ STRENGTH</span>
+            <div class="stepper-btns">
+              <button class="step-btn" (click)="state.decreaseStat('strength')" [disabled]="state.stats().strength <= 2">-</button>
+              <span class="step-val">{{ state.stats().strength }}</span>
+              <button class="step-btn" (click)="state.increaseStat('strength')" [disabled]="state.availableStatPoints() <= 0">+</button>
+            </div>
+          </div>
+
+          <div class="stepper-row">
+            <span class="stat-lbl text-emerald">🏹 AGILITY</span>
+            <div class="stepper-btns">
+              <button class="step-btn" (click)="state.decreaseStat('agility')" [disabled]="state.stats().agility <= 2">-</button>
+              <span class="step-val">{{ state.stats().agility }}</span>
+              <button class="step-btn" (click)="state.increaseStat('agility')" [disabled]="state.availableStatPoints() <= 0">+</button>
+            </div>
+          </div>
+
+          <div class="stepper-row">
+            <span class="stat-lbl text-purple">🔮 MAGIC</span>
+            <div class="stepper-btns">
+              <button class="step-btn" (click)="state.decreaseStat('magic')" [disabled]="state.stats().magic <= 2">-</button>
+              <span class="step-val">{{ state.stats().magic }}</span>
+              <button class="step-btn" (click)="state.increaseStat('magic')" [disabled]="state.availableStatPoints() <= 0">+</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="formula-box">
+          <div class="formula-header-title">
+            <span>🔬 HOW computed() RECALCULATES TOTAL POWER:</span>
+          </div>
+          <pre class="formula-pre"><code>{{ getFormulaText() }}</code></pre>
+          <div class="formula-actions">
+            <button class="reset-btn" (click)="state.resetStats()">Reset Points</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .customizer-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.15rem;
+      padding: 1.35rem;
+      background: #161923;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.85rem;
+      max-height: 86vh;
+      overflow-y: auto;
+    }
+
+    .panel-section {
+      background: #0B0E14;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.65rem;
+      padding: 1rem;
+    }
+
+    .section-title-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .title-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-title {
+      font-family: var(--font-rpg);
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      letter-spacing: 0.06em;
+      margin: 0;
+    }
+
+    .section-subtext {
+      font-size: 0.7rem;
+      color: #64748B;
+      font-family: var(--font-code);
+    }
+
+    .cursor-pointer {
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .cursor-pointer:hover {
+      transform: scale(1.05);
+    }
+
+    .hero-name-input {
+      width: 100%;
+      background: #161923;
+      border: 2px solid rgba(56, 189, 248, 0.4);
+      border-radius: 0.45rem;
+      padding: 0.65rem 0.95rem;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      font-family: var(--font-ui);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .hero-name-input:focus {
+      border-color: #38BDF8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+    }
+
+    .class-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .class-option-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.65rem 0.85rem;
+      background: #161923;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5rem;
+      text-align: left;
+    }
+
+    .class-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .class-svg {
+      width: 20px;
+      height: 20px;
+      stroke: #38BDF8;
+    }
+
+    .class-primary-tag {
+      font-family: var(--font-code);
+      font-size: 0.62rem;
+      font-weight: 800;
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.1);
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.25rem;
+    }
+
+    .class-label-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      display: block;
+    }
+
+    .class-label-sub {
+      font-size: 0.68rem;
+      color: #94A3B8;
+      display: block;
+    }
+
+    .skin-tone-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      background: #161923;
+      padding: 0.6rem 0.85rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .tone-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #94A3B8;
+    }
+
+    .swatches-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .tone-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .tone-swatch:hover {
+      transform: scale(1.2);
+      border-color: #FFFFFF;
+    }
+
+    .swatch-selected {
+      transform: scale(1.25);
+      border-color: #38BDF8 !important;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+    }
+
+    .native-picker-btn {
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      background: #232738;
+      border-radius: 50%;
+    }
+
+    .hidden-color-input {
+      opacity: 0;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    .picker-svg {
+      width: 13px;
+      height: 13px;
+      stroke: #94A3B8;
+    }
+
+    .gear-option-block {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+    }
+
+    .gear-block-label {
+      font-family: var(--font-code);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #64748B;
+      letter-spacing: 0.05em;
+    }
+
+    .headgear-chips-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.45rem;
+    }
+
+    .hat-chip-btn {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.45rem 0.65rem;
+      background: #161923;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.4rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .hat-chip-btn:hover {
+      border-color: #38BDF8;
+      background: #1F2433;
+    }
+
+    .chip-selected {
+      background: rgba(56, 189, 248, 0.12) !important;
+      border-color: #38BDF8 !important;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
+    }
+
+    .chip-hat-name {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #E2E8F0;
+    }
+
+    .rarity-badge {
+      font-family: var(--font-code);
+      font-size: 0.62rem;
+      font-weight: 700;
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.25rem;
+      text-transform: lowercase;
+    }
+
+    .badge-rare {
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .badge-epic {
+      color: #C084FC;
+      background: rgba(192, 132, 252, 0.1);
+      border: 1px solid rgba(192, 132, 252, 0.3);
+    }
+
+    .badge-legendary {
+      color: #FACC15;
+      background: rgba(250, 204, 21, 0.1);
+      border: 1px solid rgba(250, 204, 21, 0.4);
+    }
+
+    .outfit-radio-pills {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .radio-pill-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.45rem 0.85rem;
+      background: #161923;
+      border: 1px solid var(--border-subtle);
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: left;
+    }
+
+    .radio-pill-btn:hover {
+      border-color: #38BDF8;
+      background: #1F2433;
+    }
+
+    .pill-selected {
+      background: rgba(56, 189, 248, 0.1) !important;
+      border-color: #38BDF8 !important;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
+    }
+
+    .radio-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid #64748B;
+      display: inline-block;
+      transition: all 0.2s;
+    }
+
+    .pill-selected .radio-indicator {
+      border-color: #38BDF8;
+      background: #38BDF8;
+      box-shadow: 0 0 6px #38BDF8;
+    }
+
+    .outfit-pill-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #E2E8F0;
+    }
+
+    .weapons-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+
+    .weapon-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      padding: 0.65rem;
+      background: #161923;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5rem;
+      text-align: left;
+    }
+
+    .weapon-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .weapon-sym {
+      font-family: var(--font-code);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #94A3B8;
+      background: #232738;
+      padding: 0.1rem 0.35rem;
+      border-radius: 0.25rem;
+    }
+
+    .weapon-dmg {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #F87171;
+    }
+
+    .weapon-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .weapon-bottom-tags {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.65rem;
+      font-family: var(--font-code);
+    }
+
+    .scaling-tag {
+      color: #94A3B8;
+    }
+
+    .elem-flame { color: #F97316; }
+    .elem-frost { color: #38BDF8; }
+    .elem-lightning { color: #FACC15; }
+    .elem-void { color: #C084FC; }
+
+    .power-toggle-strip {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #161923;
+      padding: 0.65rem 0.85rem;
+      border-radius: 0.5rem;
+      border: 1px solid var(--border-subtle);
+      margin-bottom: 0.85rem;
+    }
+
+    .power-heading {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #FFFFFF;
+      display: block;
+    }
+
+    .power-subheading {
+      font-size: 0.68rem;
+      color: #94A3B8;
+      display: block;
+    }
+
+    .switch-control {
+      width: 46px;
+      height: 24px;
+      background: #232738;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 9999px;
+      position: relative;
+      cursor: pointer;
+      transition: background-color 0.25s;
+      flex-shrink: 0;
+    }
+
+    .switch-ball {
+      width: 16px;
+      height: 16px;
+      background: #94A3B8;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.25s;
+    }
+
+    .switch-active {
+      background: #38BDF8;
+      border-color: #38BDF8;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+    }
+
+    .switch-active .switch-ball {
+      transform: translateX(22px);
+      background: #0B0E14;
+    }
+
+    .stat-pool-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-pool-title {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #64748B;
+    }
+
+    .pool-points-badge {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      color: #38BDF8;
+    }
+
+    .stats-stepper-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .stepper-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #161923;
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.45rem;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .stat-lbl {
+      font-family: var(--font-code);
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .text-flame { color: #F97316; }
+    .text-emerald { color: #34D399; }
+    .text-purple { color: #C084FC; }
+
+    .stepper-btns {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .step-btn {
+      width: 26px;
+      height: 26px;
+      border-radius: 0.35rem;
+      background: #232738;
+      border: 1px solid var(--border-subtle);
+      color: #FFFFFF;
+      font-weight: 800;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .step-btn:hover:not(:disabled) {
+      background: #38BDF8;
+      color: #0B0E14;
+    }
+
+    .step-btn:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+
+    .step-val {
+      font-family: var(--font-code);
+      font-size: 1rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      min-width: 24px;
+      text-align: center;
+    }
+
+    .formula-box {
+      background: #161923;
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5rem;
+      padding: 0.75rem;
+    }
+
+    .formula-header-title {
+      font-family: var(--font-code);
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #C084FC;
+      margin-bottom: 0.35rem;
+    }
+
+    .formula-pre {
+      font-family: var(--font-code);
+      font-size: 0.72rem;
+      color: #CBD5E1;
+      line-height: 1.45;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    .formula-pre code {
+      font-family: inherit;
+    }
+
+    .formula-actions {
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: 1px solid var(--border-subtle);
+      color: #94A3B8;
+      padding: 0.2rem 0.55rem;
+      border-radius: 0.35rem;
+      font-size: 0.68rem;
+      font-family: var(--font-code);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .reset-btn:hover {
+      border-color: #F87171;
+      color: #F87171;
+    }
+
+    .mt-3 {
+      margin-top: 0.75rem;
+    }
+  `]
+})
+export class CustomizerPanelComponent {
+  state = inject(CharacterStateService);
+  private sanitizer = inject(DomSanitizer);
+
+  // The icon paths are our own constants, so it's safe to trust them.
+  // Without this, Angular's sanitizer strips <path> and the icons render blank.
+  classes = CLASSES.map((c) => ({
+    ...c,
+    icon: this.sanitizer.bypassSecurityTrustHtml(c.iconSvg)
+  }));
+
+  displayedHats = HATS.filter(h => ['horned-helm', 'wizard-hat', 'cyber-visor', 'hero-crown'].includes(h.id));
+  displayedOutfits = OUTFITS.filter(o => ['plate-armor', 'archmage-robe', 'cyber-exosuit'].includes(o.id));
+  weapons = WEAPONS;
+  specialPowers = SPECIAL_POWERS;
+  skinPalettes = SKIN_PALETTES;
+
+  get heroName(): string {
+    return this.state.characterName();
+  }
+  set heroName(val: string) {
+    this.state.setName(val);
+  }
+
+  onColorInput(e: Event): void {
+    const input = e.target as HTMLInputElement;
+    if (input) {
+      this.state.setSkinColor(input.value);
+    }
+  }
+
+  // Reads the same attackBreakdown() the real total uses, so the display can't drift.
+  getFormulaText(): string {
+    const b = this.state.attackBreakdown();
+    return `totalAttackPower = computed(() => {
+  base            = ${b.base}
+  ${b.primaryKey} bonus = ${b.primaryTotal} × ${b.primaryMult} = ${b.primaryBonus.toFixed(1)}   (stat + gear)
+  ${b.secondaryKey} bonus = ${b.secondaryTotal} × ${b.secondaryMult} = ${b.secondaryBonus.toFixed(1)}
+  synergy         = +${b.synergy}
+  aura            = ×${b.multiplier}
+  return Math.round((base + bonuses + synergy) × aura)
+  // => RESULT: ${b.total} ATK
+});`;
+  }
+
+  openSignalsTab(): void {
+    this.state.openCodePeekerWithTab('signals');
+  }
+
+  openBindingsTab(): void {
+    this.state.openCodePeekerWithTab('bindings');
+  }
+
+  openDirectivesTab(): void {
+    this.state.openCodePeekerWithTab('directives');
+  }
+}
+</file>
+
+<file path="src/app/components/header/header.component.ts">
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { CharacterStateService } from '../../services/character-state.service';
+import { PRESETS, CharacterPreset } from '../../models/character.model';
+import { SoundEffectsService } from '../../services/sound-effects.service';
+
+@Component({
+  selector: 'app-header',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <header class="header-container">
+      <!-- App Brand Title without Lightning Symbol -->
+      <div class="brand-section">
+        <div class="brand-text-col">
+          <div class="title-row">
+            <h1 class="brand-title">HERO FORGE</h1>
+            <span class="signals-badge">ANGULAR 18+ SIGNALS</span>
+          </div>
+          <p class="brand-subtitle">
+            2D Character Customizer & Reactive State Inspector
+          </p>
+        </div>
+      </div>
+
+      <!-- Quick Presets Segmented Bar -->
+      <div class="presets-section">
+        <span class="presets-label">PRESETS:</span>
+        <div class="segmented-bar">
+          @for (preset of presets; track preset.name) {
+            <button
+              class="segmented-btn"
+              [class.segmented-active]="state.characterName() === preset.name"
+              (click)="onSelectPreset(preset)"
+              [title]="'Load profile: ' + preset.name"
+            >
+              <span class="preset-name">{{ preset.name.split(' ')[0] }}</span>
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Header Controls -->
+      <div class="controls-section">
+        <!-- Audio Toggle -->
+        <button
+          class="audio-btn"
+          (click)="toggleSound()"
+          [title]="sound.isEnabled ? 'Mute Audio Effects' : 'Enable Audio Effects'"
+          aria-label="Toggle Audio"
+        >
+          @if (sound.isEnabled) {
+            <svg class="icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.114 5.636a9 9 0 010 12.728M16.463 8.288a5.25 5.25 0 010 7.424M6.75 8.25l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.757 3.63 8.25 4.51 8.25H6.75z" />
+            </svg>
+          } @else {
+            <svg class="icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 9.75L19.5 12m0 0l2.25 2.25M19.5 12l2.25-2.25M19.5 12l-2.25 2.25m-10.5-6l4.72-4.72a.75.75 0 011.28.53v15.88a.75.75 0 01-1.28.53l-4.72-4.72H4.51c-.88 0-1.704-.507-1.938-1.354A9.01 9.01 0 012.25 12c0-.83.112-1.633.322-2.396C2.806 8.757 3.63 8.25 4.51 8.25H6.75z" />
+            </svg>
+          }
+        </button>
+
+        <!-- Presenter Mode Switch -->
+        <div 
+          class="presenter-switch-box"
+          (click)="state.togglePresenterMode()"
+          title="Toggle High Contrast"
+        >
+          <span class="presenter-label">Presenter Mode:</span>
+          <span class="presenter-state-badge" [class.state-on]="state.presenterMode()">
+            {{ state.presenterMode() ? 'ON' : 'OFF' }}
+          </span>
+        </div>
+
+        <!-- Inspect Code Toggle Button -->
+        <button
+          class="cta-see-code-btn"
+          (click)="state.toggleCodePeeker()"
+        >
+          <svg class="icon-svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75L22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3l-4.5 16.5" />
+          </svg>
+          <span class="cta-code-text">Inspect Code</span>
+        </button>
+      </div>
+    </header>
+  `,
+  styles: [`
+    .header-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.85rem 1.75rem;
+      background: #111726;
+      border-bottom: 1px solid var(--border-dim);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .brand-text-col {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .brand-title {
+      font-family: var(--font-rpg);
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #FFFFFF;
+      margin: 0;
+    }
+
+    .signals-badge {
+      font-family: var(--font-code);
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #38BDF8;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      padding: 0.18rem 0.5rem;
+      border-radius: 0.25rem;
+      letter-spacing: 0.06em;
+    }
+
+    .brand-subtitle {
+      font-size: 0.75rem;
+      color: #94A3B8;
+      margin: 0;
+    }
+
+    .presets-section {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: #090D16;
+      padding: 0.3rem 0.5rem;
+      border-radius: 0.6rem;
+      border: 1px solid var(--border-dim);
+    }
+
+    .presets-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #64748B;
+      font-family: var(--font-code);
+      padding-left: 0.35rem;
+    }
+
+    .segmented-bar {
+      display: flex;
+      gap: 0.25rem;
+    }
+
+    .segmented-btn {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      background: transparent;
+      color: #94A3B8;
+      border: 1px solid transparent;
+      border-radius: 0.4rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .segmented-btn:hover {
+      color: #FFFFFF;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .segmented-active {
+      background: #111726 !important;
+      color: #38BDF8 !important;
+      border-color: rgba(56, 189, 248, 0.3) !important;
+    }
+
+    .controls-section {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+    }
+
+    .audio-btn {
+      background: #090D16;
+      border: 1px solid var(--border-dim);
+      color: #E2E8F0;
+      width: 38px;
+      height: 38px;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .audio-btn:hover {
+      background: #1E293B;
+      border-color: #38BDF8;
+      color: #38BDF8;
+    }
+
+    .icon-svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .presenter-switch-box {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #090D16;
+      border: 1px solid var(--border-dim);
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 0.2s;
+    }
+
+    .presenter-switch-box:hover {
+      border-color: #38BDF8;
+    }
+
+    .presenter-label {
+      font-size: 0.78rem;
+      color: #94A3B8;
+      font-weight: 500;
+    }
+
+    .presenter-state-badge {
+      font-family: var(--font-code);
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 0.15rem 0.45rem;
+      border-radius: 0.25rem;
+      background: #1E293B;
+      color: #94A3B8;
+    }
+
+    .state-on {
+      background: #FACC15 !important;
+      color: #090D16 !important;
+    }
+
+    .cta-see-code-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1.1rem;
+      background: linear-gradient(135deg, #38BDF8, #0284C7);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 0.5rem;
+      color: #090D16;
+      font-size: 0.82rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .cta-see-code-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+    }
+
+    @media (max-width: 960px) {
+      .presets-section {
+        display: none;
+      }
+    }
+  `]
+})
+export class HeaderComponent {
+  state = inject(CharacterStateService);
+  sound = inject(SoundEffectsService);
+  presets = PRESETS;
+
+  onSelectPreset(preset: CharacterPreset): void {
+    this.state.loadPreset(preset);
+  }
+
+  toggleSound(): void {
+    this.sound.toggleSound();
+  }
+}
+</file>
+
+<file path="src/app/models/character.model.ts">
+export type CharacterClassId = 'warrior' | 'mage' | 'rogue' | 'paladin';
+export type ElementType = 'flame' | 'frost' | 'lightning' | 'void';
+export type RarityType = 'common' | 'rare' | 'epic' | 'legendary';
+
+export interface CharacterClass {
+  id: CharacterClassId;
+  name: string;
+  tagline: string;
+  primaryStat: 'strength' | 'agility' | 'magic';
+  iconSvg: string;
+  badgeColor: string;
+}
+
+export interface HatItem {
+  id: string;
+  name: string;
+  type: 'helm' | 'wizard' | 'visor' | 'crown' | 'hood';
+  description: string;
+  rarity: RarityType;
+  strengthBonus: number;
+  agilityBonus: number;
+  magicBonus: number;
+}
+
+export interface OutfitItem {
+  id: string;
+  name: string;
+  type: 'plate' | 'robe' | 'cyber' | 'leather';
+  description: string;
+  rarity: RarityType;
+  baseColor: string;
+  trimColor: string;
+  defense: number;
+}
+
+export interface WeaponItem {
+  id: string;
+  name: string;
+  type: 'sword' | 'staff' | 'bow' | 'scythe' | 'daggers' | 'wand';
+  description: string;
+  baseDamage: number;
+  scalingStat: 'strength' | 'agility' | 'magic';
+  element: ElementType;
+  rarity: RarityType;
+  symbolTag: string;
+  accentColor: string;
+}
+
+export interface SpecialPower {
+  id: string;
+  name: string;
+  element: ElementType;
+  description: string;
+  powerMultiplier: number;
+  glowColor: string;
+  secondaryGlow: string;
+}
+
+export interface RpgStats {
+  strength: number;
+  agility: number;
+  magic: number;
+}
+
+export interface CharacterPreset {
+  name: string;
+  characterClass: CharacterClassId;
+  skinColor: string;
+  hatId: string;
+  outfitId: string;
+  weaponId: string;
+  powerActive: boolean;
+  powerId: string;
+  stats: RpgStats;
+}
+
+export const CLASSES: CharacterClass[] = [
+  {
+    id: 'warrior',
+    name: 'Dragon Warrior',
+    tagline: 'Brutal melee mastery & iron defense',
+    primaryStat: 'strength',
+    iconSvg: '<path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132 2.132-3.197a1.5 1.5 0 012.396.118l3.197 4.795a1.5 1.5 0 01-.118 2.396l-4.41 2.94zM3 21l6.75-6.75M9.75 14.25L5.25 18.75M14.25 9.75l4.5-4.5" />',
+    badgeColor: '#f87171'
+  },
+  {
+    id: 'mage',
+    name: 'Arcane Mage',
+    tagline: 'Unleashes destructive elemental spells',
+    primaryStat: 'magic',
+    iconSvg: '<path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />',
+    badgeColor: '#c084fc'
+  },
+  {
+    id: 'rogue',
+    name: 'Shadow Rogue',
+    tagline: 'Lightning reflexes & precision criticals',
+    primaryStat: 'agility',
+    iconSvg: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-10.5m0 0h-6m6 0v6M20.25 10.5l-10.5 10.5m0 0h6m-6 0v-6" />',
+    badgeColor: '#34d399'
+  },
+  {
+    id: 'paladin',
+    name: 'Cyber Paladin',
+    tagline: 'Holy shields & futuristic cyber-sorcery',
+    primaryStat: 'strength',
+    iconSvg: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751A11.959 11.959 0 0112 2.714z" />',
+    badgeColor: '#fbbf24'
+  }
+];
+
+export const HATS: HatItem[] = [
+  {
+    id: 'horned-helm',
+    name: 'Viking War Helm',
+    type: 'helm',
+    description: 'Forged with dragon-iron horns for brutal headbutts.',
+    rarity: 'rare',
+    strengthBonus: 4,
+    agilityBonus: 0,
+    magicBonus: 0
+  },
+  {
+    id: 'wizard-hat',
+    name: 'Starseeker Wizard Hat',
+    type: 'wizard',
+    description: 'Embroidered with celestial starlight for spell weaving.',
+    rarity: 'epic',
+    strengthBonus: 0,
+    agilityBonus: 1,
+    magicBonus: 6
+  },
+  {
+    id: 'cyber-visor',
+    name: 'Neon Cyber Visor',
+    type: 'visor',
+    description: 'HUD tracking calculates enemy weak points at 240 FPS.',
+    rarity: 'legendary',
+    strengthBonus: 2,
+    agilityBonus: 5,
+    magicBonus: 2
+  },
+  {
+    id: 'hero-crown',
+    name: 'Crown of Radiance',
+    type: 'crown',
+    description: 'Worn by rulers whose aura commands the battlefield.',
+    rarity: 'legendary',
+    strengthBonus: 3,
+    agilityBonus: 3,
+    magicBonus: 4
+  },
+  {
+    id: 'shadow-cowl',
+    name: 'Shinobi Hood',
+    type: 'hood',
+    description: 'Woven from moonlit shadow silk. Silent in footsteps.',
+    rarity: 'rare',
+    strengthBonus: 1,
+    agilityBonus: 5,
+    magicBonus: 1
+  }
+];
+
+export const OUTFITS: OutfitItem[] = [
+  {
+    id: 'plate-armor',
+    name: 'Paladin Heavy Plate',
+    type: 'plate',
+    description: 'Reinforced steel with gold inlays to deflect dragon breath.',
+    rarity: 'epic',
+    baseColor: '#334155',
+    trimColor: '#eab308',
+    defense: 45
+  },
+  {
+    id: 'archmage-robe',
+    name: 'Archmage Velvet Robe',
+    type: 'robe',
+    description: 'Enchanted fabric that absorbs and redirects arcane mana.',
+    rarity: 'rare',
+    baseColor: '#4c1d95',
+    trimColor: '#a855f7',
+    defense: 20
+  },
+  {
+    id: 'cyber-exosuit',
+    name: 'Hyperdrive Cyber Suit',
+    type: 'cyber',
+    description: 'Carbon fiber weaves with pulse-conduit cooling channels.',
+    rarity: 'legendary',
+    baseColor: '#0f172a',
+    trimColor: '#06b6d4',
+    defense: 38
+  },
+  {
+    id: 'rogue-tunic',
+    name: 'Midnight Assassin Leathers',
+    type: 'leather',
+    description: 'Aerodynamic treated leather granting silent mobility.',
+    rarity: 'rare',
+    baseColor: '#1c1917',
+    trimColor: '#10b981',
+    defense: 28
+  }
+];
+
+export const WEAPONS: WeaponItem[] = [
+  {
+    id: 'flame-sword',
+    name: 'Infernal Sunblade',
+    type: 'sword',
+    description: 'Ignites the air with solar flames upon every swing.',
+    baseDamage: 45,
+    scalingStat: 'strength',
+    element: 'flame',
+    rarity: 'epic',
+    symbolTag: 'SWD-FLM',
+    accentColor: '#f97316'
+  },
+  {
+    id: 'frost-staff',
+    name: 'Glacial Scepter',
+    type: 'staff',
+    description: 'Channels blizzards capable of freezing lava solid.',
+    baseDamage: 42,
+    scalingStat: 'magic',
+    element: 'frost',
+    rarity: 'epic',
+    symbolTag: 'STF-ICE',
+    accentColor: '#38bdf8'
+  },
+  {
+    id: 'lightning-bow',
+    name: 'Thunderbolt Recurve',
+    type: 'bow',
+    description: 'Fires supersonic lightning arrows that split in mid-air.',
+    baseDamage: 40,
+    scalingStat: 'agility',
+    element: 'lightning',
+    rarity: 'legendary',
+    symbolTag: 'BOW-BOLT',
+    accentColor: '#eab308'
+  },
+  {
+    id: 'void-scythe',
+    name: 'Void Eclipse Scythe',
+    type: 'scythe',
+    description: 'Cleaves the dimensional fabric with dark gravity pulses.',
+    baseDamage: 52,
+    scalingStat: 'strength',
+    element: 'void',
+    rarity: 'legendary',
+    symbolTag: 'SCT-VOID',
+    accentColor: '#a855f7'
+  },
+  {
+    id: 'venom-daggers',
+    name: 'Emerald Twin Daggers',
+    type: 'daggers',
+    description: 'Coated in viper venom; strikes thrice before blinking.',
+    baseDamage: 38,
+    scalingStat: 'agility',
+    element: 'frost',
+    rarity: 'rare',
+    symbolTag: 'DAG-VEN',
+    accentColor: '#10b981'
+  },
+  {
+    id: 'cosmic-wand',
+    name: 'Supernova Prism Wand',
+    type: 'wand',
+    description: 'Funnels pure starlight into piercing gamma bursts.',
+    baseDamage: 46,
+    scalingStat: 'magic',
+    element: 'lightning',
+    rarity: 'epic',
+    symbolTag: 'WND-STR',
+    accentColor: '#ec4899'
+  }
+];
+
+export const SPECIAL_POWERS: SpecialPower[] = [
+  {
+    id: 'flame-aura',
+    name: 'Dragonfire Radiance',
+    element: 'flame',
+    description: 'Surrounds the champion in blazing dragon fire (+25% power).',
+    powerMultiplier: 1.25,
+    glowColor: '#ff4500',
+    secondaryGlow: '#ffaa00'
+  },
+  {
+    id: 'frost-barrier',
+    name: 'Absolute Zero Aura',
+    element: 'frost',
+    description: 'Creates a crystal ice vortex that empowers frost spells (+25% power).',
+    powerMultiplier: 1.25,
+    glowColor: '#00d2ff',
+    secondaryGlow: '#99f6ff'
+  },
+  {
+    id: 'lightning-surge',
+    name: 'Overcharged Ion Storm',
+    element: 'lightning',
+    description: 'Electricity crackles around the champion, electrifying attacks (+25% power).',
+    powerMultiplier: 1.25,
+    glowColor: '#ffe600',
+    secondaryGlow: '#fffbeb'
+  },
+  {
+    id: 'void-vortex',
+    name: 'Singularity Void Aura',
+    element: 'void',
+    description: 'Gravitational distortion bends light and devours enemy defenses (+30% power).',
+    powerMultiplier: 1.30,
+    glowColor: '#9333ea',
+    secondaryGlow: '#c084fc'
+  }
+];
+
+export const SKIN_PALETTES = [
+  { label: 'Yellow', value: '#fbbf24' },
+  { label: 'Cream', value: '#fed7aa' },
+  { label: 'Orange', value: '#f97316' },
+  { label: 'Purple', value: '#a78bfa' },
+  { label: 'Mint', value: '#34d399' },
+  { label: 'Light Blue', value: '#bae6fd' },
+  { label: 'Slate', value: '#475569' }
+];
+
+export const PRESETS: CharacterPreset[] = [
+  {
+    name: 'Ignis Flareheart',
+    characterClass: 'warrior',
+    skinColor: '#fbbf24',
+    hatId: 'horned-helm',
+    outfitId: 'plate-armor',
+    weaponId: 'flame-sword',
+    powerActive: true,
+    powerId: 'flame-aura',
+    stats: { strength: 16, agility: 8, magic: 6 }
+  },
+  {
+    name: 'Lyra Frostwhisper',
+    characterClass: 'mage',
+    skinColor: '#bae6fd',
+    hatId: 'wizard-hat',
+    outfitId: 'archmage-robe',
+    weaponId: 'frost-staff',
+    powerActive: true,
+    powerId: 'frost-barrier',
+    stats: { strength: 6, agility: 9, magic: 18 }
+  },
+  {
+    name: 'Kaelen Ghoststride',
+    characterClass: 'rogue',
+    skinColor: '#fed7aa',
+    hatId: 'shadow-cowl',
+    outfitId: 'rogue-tunic',
+    weaponId: 'lightning-bow',
+    powerActive: true,
+    powerId: 'lightning-surge',
+    stats: { strength: 7, agility: 18, magic: 8 }
+  },
+  {
+    name: 'V-09 Cyber Paladin',
+    characterClass: 'paladin',
+    skinColor: '#a78bfa',
+    hatId: 'cyber-visor',
+    outfitId: 'cyber-exosuit',
+    weaponId: 'void-scythe',
+    powerActive: true,
+    powerId: 'void-vortex',
+    stats: { strength: 14, agility: 11, magic: 12 }
+  }
+];
+</file>
+
+<file path="src/app/services/character-state.service.ts">
+import { Injectable, computed, signal, inject } from '@angular/core';
+import {
+  CharacterClass,
+  CLASSES,
+  HatItem,
+  HATS,
+  OutfitItem,
+  OUTFITS,
+  WeaponItem,
+  WEAPONS,
+  SpecialPower,
+  SPECIAL_POWERS,
+  RpgStats,
+  CharacterPreset
+} from '../models/character.model';
+import { SoundEffectsService } from './sound-effects.service';
+import confetti from 'canvas-confetti';
+
+
+const SCALING = {
+  strength: { main: 'strength', mainMult: 2.4, sub: 'agility',  subMult: 0.4 },
+  agility:  { main: 'agility',  mainMult: 2.5, sub: 'strength', subMult: 0.3 },
+  magic:    { main: 'magic',    mainMult: 2.6, sub: 'agility',  subMult: 0.3 }
+} as const;
+
+@Injectable({
+  providedIn: 'root'
+})
+export class CharacterStateService {
+  private sound = inject(SoundEffectsService);
+
+  // Core Signals
+  readonly characterName = signal<string>('Ignis Flareheart');
+  readonly selectedClass = signal<CharacterClass>(CLASSES[0]);
+  readonly skinColor = signal<string>('#fbbf24');
+  readonly selectedHat = signal<HatItem>(HATS[0]);
+  readonly selectedOutfit = signal<OutfitItem>(OUTFITS[0]);
+  readonly selectedWeapon = signal<WeaponItem>(WEAPONS[0]);
+  readonly powerActive = signal<boolean>(true);
+  readonly selectedPower = signal<SpecialPower>(SPECIAL_POWERS[0]);
+  readonly stats = signal<RpgStats>({ strength: 16, agility: 8, magic: 6 });
+  readonly availableStatPoints = signal<number>(5);
+
+  // Presentation & UI Signals
+  readonly presenterMode = signal<boolean>(false);
+  readonly codePeekerOpen = signal<boolean>(false);
+  readonly activeCodeTab = signal<'signals' | 'bindings' | 'directives' | 'state'>('signals');
+  readonly isAttacking = signal<boolean>(false);
+
+  // Track the most recently modified signal to drive dynamic code highlight in Code Peeker
+  readonly lastUpdatedSignal = signal<{ name: string; timestamp: number; value: string }>({
+    name: 'characterName',
+    timestamp: Date.now(),
+    value: 'Ignis Flareheart'
+  });
+
+  // Computed Signal: full attack maths, broken into steps
+    readonly attackBreakdown = computed(() => {
+    const weapon = this.selectedWeapon();
+    const st = this.stats();
+    const hat = this.selectedHat();
+    const power = this.selectedPower();
+    const powerOn = this.powerActive();
+
+    const totals = {
+      strength: st.strength + hat.strengthBonus,
+      agility: st.agility + hat.agilityBonus,
+      magic: st.magic + hat.magicBonus
+    };
+
+    const rule = SCALING[weapon.scalingStat];
+    const primaryTotal = totals[rule.main];
+    const secondaryTotal = totals[rule.sub];
+    const primaryBonus = primaryTotal * rule.mainMult;
+    const secondaryBonus = secondaryTotal * rule.subMult;
+    const synergy = powerOn && power.element === weapon.element ? 18 : 0;
+    const multiplier = powerOn ? power.powerMultiplier : 1;
+    const total = Math.round(
+      (weapon.baseDamage + primaryBonus + secondaryBonus + synergy) * multiplier
+    );
+
+    return {
+      base: weapon.baseDamage,
+      primaryKey: rule.main,
+      primaryMult: rule.mainMult,
+      primaryTotal,
+      primaryBonus,
+      secondaryKey: rule.sub,
+      secondaryMult: rule.subMult,
+      secondaryTotal,
+      secondaryBonus,
+      synergy,
+      multiplier,
+      total
+    };
+  });
+
+  readonly totalAttackPower = computed(() => this.attackBreakdown().total);
+
+
+  // Computed Signal: Total Defense Rating
+  readonly defenseRating = computed(() => {
+    const outfit = this.selectedOutfit();
+    const st = this.stats();
+    const hat = this.selectedHat();
+    return outfit.defense + Math.round(st.strength * 0.6) + hat.strengthBonus * 2;
+  });
+
+  // Computed Signal: Critical Strike Chance (%)
+  readonly critChance = computed(() => {
+    const st = this.stats();
+    const hat = this.selectedHat();
+    const totalAgi = st.agility + hat.agilityBonus;
+    return Math.min(80, Math.round(5 + totalAgi * 1.7));
+  });
+
+  // Computed Signal: Mana Pool
+  readonly manaPool = computed(() => {
+    const st = this.stats();
+    const hat = this.selectedHat();
+    const totalMag = st.magic + hat.magicBonus;
+    return 60 + totalMag * 14;
+  });
+
+  // Computed Signal: Weapon Synergy Details
+  readonly weaponSynergy = computed(() => {
+    const weapon = this.selectedWeapon();
+    const power = this.selectedPower();
+    const isPowerOn = this.powerActive();
+    const cls = this.selectedClass();
+
+    const matchesClass = cls.primaryStat === weapon.scalingStat;
+    const matchesElement = isPowerOn && power.element === weapon.element;
+
+    if (matchesClass && matchesElement) {
+      return {
+        level: 'Perfect Resonance',
+        bonus: '+35% Total Combat Power',
+        active: true,
+        description: `${cls.name} wielding native ${weapon.scalingStat.toUpperCase()} gear with matched ${power.element.toUpperCase()} aura!`
+      };
+    } else if (matchesElement) {
+      return {
+        level: 'Elemental Harmony',
+        bonus: '+18 Flat Elemental Bonus',
+        active: true,
+        description: `Weapon element (${weapon.element}) matches Aura element!`
+      };
+    } else if (matchesClass) {
+      return {
+        level: 'Class Affinity',
+        bonus: 'Max Stat Scaling Active',
+        active: true,
+        description: `Weapon scales directly from ${cls.primaryStat.toUpperCase()}!`
+      };
+    }
+
+    return {
+      level: 'Standard Setup',
+      bonus: 'No extra resonance',
+      active: false,
+      description: 'Switch weapon or power to activate elemental resonance.'
+    };
+  });
+
+  // Computed Signal: Dynamic RPG Title
+  readonly characterTitle = computed(() => {
+    const name = this.characterName().trim() || 'Hero';
+    const cls = this.selectedClass();
+    const weapon = this.selectedWeapon();
+    const isPowerOn = this.powerActive();
+
+    if (isPowerOn) {
+      if (weapon.element === 'flame') return `${name} the Sun-Forged Champion`;
+      if (weapon.element === 'frost') return `${name} the Glacial Sovereign`;
+      if (weapon.element === 'lightning') return `${name} the Storm Sovereign`;
+      return `${name} the Void Harbinger`;
+    }
+
+    return `${name} the ${cls.name}`;
+  });
+
+  // Signal Mutators
+  setName(name: string): void {
+    this.characterName.set(name);
+    this.recordSignalChange('characterName', name);
+  }
+
+  setClass(cls: CharacterClass): void {
+    this.selectedClass.set(cls);
+    this.sound.playClick();
+    this.recordSignalChange('selectedClass', cls.name);
+  }
+
+  setSkinColor(color: string): void {
+    this.skinColor.set(color);
+    this.sound.playClick();
+    this.recordSignalChange('skinColor', color);
+  }
+
+  setHat(hat: HatItem): void {
+    this.selectedHat.set(hat);
+    this.sound.playClick();
+    this.recordSignalChange('selectedHat', hat.name);
+  }
+
+  setOutfit(outfit: OutfitItem): void {
+    this.selectedOutfit.set(outfit);
+    this.sound.playClick();
+    this.recordSignalChange('selectedOutfit', outfit.name);
+  }
+
+  setWeapon(weapon: WeaponItem): void {
+    this.selectedWeapon.set(weapon);
+    this.sound.playEquipWeapon(weapon.element);
+    this.recordSignalChange('selectedWeapon', weapon.name);
+  }
+
+  togglePower(): void {
+    const next = !this.powerActive();
+    this.powerActive.set(next);
+    this.sound.playPowerToggle(next);
+    this.recordSignalChange('powerActive', String(next));
+  }
+
+  setPower(power: SpecialPower): void {
+    this.selectedPower.set(power);
+    this.sound.playEquipWeapon(power.element);
+    this.recordSignalChange('selectedPower', power.name);
+  }
+
+  increaseStat(statName: keyof RpgStats): void {
+    const currentPoints = this.availableStatPoints();
+    if (currentPoints <= 0) return;
+
+    this.stats.update((st) => ({
+      ...st,
+      [statName]: st[statName] + 1
+    }));
+    this.availableStatPoints.set(currentPoints - 1);
+    this.sound.playStatChange(true);
+    this.recordSignalChange('stats', `${statName}: ${this.stats()[statName]}`);
+
+    if (currentPoints - 1 === 0) {
+      this.fireConfetti();
+    }
+  }
+
+  decreaseStat(statName: keyof RpgStats): void {
+    const st = this.stats();
+    if (st[statName] <= 2) return; // Minimum floor
+
+    this.stats.update((prev) => ({
+      ...prev,
+      [statName]: prev[statName] - 1
+    }));
+    this.availableStatPoints.update((pts) => pts + 1);
+    this.sound.playStatChange(false);
+    this.recordSignalChange('stats', `${statName}: ${this.stats()[statName]}`);
+  }
+
+  resetStats(): void {
+    this.stats.set({ strength: 10, agility: 10, magic: 10 });
+    this.availableStatPoints.set(10);
+    this.sound.playClick();
+    this.recordSignalChange('stats', 'Reset to 10/10/10');
+  }
+
+  loadPreset(preset: CharacterPreset): void {
+    this.characterName.set(preset.name);
+    const cls = CLASSES.find((c) => c.id === preset.characterClass) || CLASSES[0];
+    const hat = HATS.find((h) => h.id === preset.hatId) || HATS[0];
+    const outfit = OUTFITS.find((o) => o.id === preset.outfitId) || OUTFITS[0];
+    const weapon = WEAPONS.find((w) => w.id === preset.weaponId) || WEAPONS[0];
+    const power = SPECIAL_POWERS.find((p) => p.id === preset.powerId) || SPECIAL_POWERS[0];
+
+    this.selectedClass.set(cls);
+    this.skinColor.set(preset.skinColor);
+    this.selectedHat.set(hat);
+    this.selectedOutfit.set(outfit);
+    this.selectedWeapon.set(weapon);
+    this.powerActive.set(preset.powerActive);
+    this.selectedPower.set(power);
+    this.stats.set({ ...preset.stats });
+    this.availableStatPoints.set(0);
+
+    this.sound.playEquipWeapon(weapon.element);
+    this.recordSignalChange('preset', preset.name);
+    this.fireConfetti();
+  }
+
+  togglePresenterMode(): void {
+    const next = !this.presenterMode();
+    this.presenterMode.set(next);
+    this.sound.playClick();
+    this.recordSignalChange('presenterMode', String(next));
+  }
+
+  toggleCodePeeker(): void {
+    const next = !this.codePeekerOpen();
+    this.codePeekerOpen.set(next);
+    this.sound.playClick();
+  }
+
+  openCodePeekerWithTab(tab: 'signals' | 'bindings' | 'directives' | 'state'): void {
+    this.activeCodeTab.set(tab);
+    this.codePeekerOpen.set(true);
+    this.sound.playClick();
+  }
+
+  setCodeTab(tab: 'signals' | 'bindings' | 'directives' | 'state'): void {
+    this.activeCodeTab.set(tab);
+    this.sound.playClick();
+  }
+
+  triggerAttack(): void {
+    if (this.isAttacking()) return;
+    this.isAttacking.set(true);
+    this.sound.playAttackSlice();
+    setTimeout(() => {
+      this.isAttacking.set(false);
+    }, 450);
+  }
+
+  private recordSignalChange(name: string, value: string): void {
+    this.lastUpdatedSignal.set({
+      name,
+      timestamp: Date.now(),
+      value
+    });
+  }
+
+  private fireConfetti(): void {
+    if (typeof window === 'undefined') return;
+    try {
+      confetti({
+        particleCount: 60,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+    } catch {
+      // Ignore if unavailable
+    }
+  }
+}
+</file>
+
+<file path="src/app/services/sound-effects.service.ts">
+import { Injectable } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SoundEffectsService {
+  private audioCtx: AudioContext | null = null;
+  private soundEnabled = true;
+
+  get isEnabled(): boolean {
+    return this.soundEnabled;
+  }
+
+  toggleSound(): boolean {
+    this.soundEnabled = !this.soundEnabled;
+    if (this.soundEnabled) {
+      this.playBeep(587.33, 'triangle', 0.1);
+    }
+    return this.soundEnabled;
+  }
+
+  private initCtx(): AudioContext | null {
+    if (!this.soundEnabled) return null;
+    if (!this.audioCtx && typeof window !== 'undefined') {
+      const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      if (AudioContextClass) {
+        this.audioCtx = new AudioContextClass();
+      }
+    }
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume();
+    }
+    return this.audioCtx;
+  }
+
+  playClick(): void {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.05);
+
+    gain.gain.setValueAtTime(0.12, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.05);
+  }
+
+  playEquipWeapon(element: string): void {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    if (element === 'flame') {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.15);
+    } else if (element === 'frost') {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.18);
+    } else if (element === 'lightning') {
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(300, ctx.currentTime);
+      osc.frequency.setValueAtTime(900, ctx.currentTime + 0.05);
+      osc.frequency.setValueAtTime(1200, ctx.currentTime + 0.1);
+    } else {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(450, ctx.currentTime + 0.2);
+    }
+
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+  }
+
+  playPowerToggle(active: boolean): void {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    if (active) {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.3);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    } else {
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(600, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(180, ctx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.12, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    }
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + (active ? 0.3 : 0.2));
+  }
+
+  playStatChange(isIncrease: boolean): void {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+
+    const freq = isIncrease ? 523.25 : 329.63; // C5 or E4
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(freq * 1.5, ctx.currentTime + 0.1);
+
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.1);
+  }
+
+  playAttackSlice(): void {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.25);
+
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.25);
+  }
+
+  private playBeep(freq: number, type: OscillatorType, dur: number): void {
+    const ctx = this.initCtx();
+    if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + dur);
+  }
+}
+</file>
+
+<file path="src/app/app.component.css">
+
+</file>
+
+<file path="src/app/app.component.html">
+<div [class.presenter-mode]="characterState.presenterMode()" class="min-h-screen flex flex-col p-4 md:p-6 max-w-[1800px] mx-auto transition-all duration-300">
+  
+  <!-- Header Component -->
+  <header class="mb-6 w-full">
+    <app-header></app-header>
+  </header>
+
+  <!-- Main Side-by-Side Grid Layout -->
+  <main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start flex-1 w-full">
+    
+    <!-- LEFT SIDE: Selection Boxes / Customizer Panel (6 Columns) -->
+    <section class="lg:col-span-6 w-full h-full transition-all duration-300">
+      <div class="card-glass p-4 md:p-5 h-full flex flex-col justify-between">
+        <app-customizer-panel></app-customizer-panel>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDE: Character Canvas OR Code Peeker (6 Columns) -->
+    <section class="lg:col-span-6 w-full h-full transition-all duration-300">
+      
+      <!-- Show 2D Character Canvas when Code Peeker is CLOSED -->
+      @if (!characterState.codePeekerOpen()) {
+        <div class="card-glass p-6 md:p-8 h-full flex flex-col items-center justify-center relative overflow-hidden min-h-[600px] animate-fadeIn">
+          <!-- Subtle Grid Background -->
+          <div class="absolute inset-0 bg-[radial-gradient(#38BDF8_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
+
+          <!-- 2D Character Canvas -->
+          <app-character-canvas class="w-full flex justify-center z-10"></app-character-canvas>
+        </div>
+      }
+
+      <!-- Show Code Inspector in place of Character Canvas when Code Peeker is OPEN -->
+      @if (characterState.codePeekerOpen()) {
+        <aside class="w-full h-full animate-fadeIn">
+          <div class="card-glass p-5 h-full border-l-2 border-l-cyan-400/40">
+            <app-code-peeker></app-code-peeker>
+          </div>
+        </aside>
+      }
+
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="mt-8 pt-4 border-t border-slate-800/80 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500 font-code gap-2 w-full">
+    <span>Powered by Angular 18 Standalone Components & Signals</span>
+    <span>College Tech Festival Demo // School Audience Mode</span>
+  </footer>
+
+</div>
+</file>
+
+<file path="src/app/app.component.spec.ts">
+import { TestBed } from '@angular/core/testing';
+import { AppComponent } from './app.component';
+import { CharacterStateService } from './services/character-state.service';
+
+describe('AppComponent', () => {
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [AppComponent],
+      providers: [CharacterStateService]
+    }).compileComponents();
+  });
+
+  it('should create the standalone customizer app', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app).toBeTruthy();
+  });
+
+  it('should initialize character state with reactive signals', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    expect(app.state.characterName()).toBeTruthy();
+    expect(app.state.totalAttackPower()).toBeGreaterThan(0);
+  });
+
+  it('should toggle presenter mode when triggered', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    const initial = app.state.presenterMode();
+    app.state.togglePresenterMode();
+    expect(app.state.presenterMode()).toBe(!initial);
+  });
+});
+</file>
+
+<file path="src/app/app.component.ts">
+import { Component, inject } from '@angular/core';
+import { HeaderComponent } from './components/header/header.component';
+import { CharacterCanvasComponent } from './components/character-canvas/character-canvas.component';
+import { CustomizerPanelComponent } from './components/customizer-panel/customizer-panel.component';
+import { CodePeekerComponent } from './components/code-peeker/code-peeker.component';
+import { CharacterStateService } from './services/character-state.service';
+
+type CodeTab = 'signals' | 'bindings' | 'directives' | 'state';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [HeaderComponent, CharacterCanvasComponent, CustomizerPanelComponent, CodePeekerComponent],
+  template: `
+    <div class="app-viewport" [class.presenter-mode]="state.presenterMode()">
+      <app-header />
+
+      <main class="main-content">
+        <!-- LEFT: selection boxes -->
+        <section class="stage-column customizer-stage" aria-label="Customization Panel">
+          <app-customizer-panel />
+        </section>
+
+        <!-- RIGHT: hero -->
+        <section class="stage-column canvas-stage" aria-label="Character Canvas">
+          <app-character-canvas />
+        </section>
+      </main>
+
+      <footer class="concept-strip">
+        <button type="button" class="concept-card" (click)="openConcept('signals')">
+          <span class="concept-pill pill-signal">SIGNALS</span>
+          <span class="concept-note">Fine-grained reactive state that updates only what changed</span>
+        </button>
+        <button type="button" class="concept-card" (click)="openConcept('bindings')">
+          <span class="concept-pill pill-twoway">[(ngModel)]</span>
+          <span class="concept-note">Instant two-way binding on Hero Name</span>
+        </button>
+        <button type="button" class="concept-card" (click)="openConcept('directives')">
+          <span class="concept-pill pill-directive">&#64;if / &#64;for</span>
+          <span class="concept-note">Native template control flow with tracking</span>
+        </button>
+        <button type="button" class="concept-card" (click)="openConcept('signals')">
+          <span class="concept-pill pill-computed">computed()</span>
+          <span class="concept-note">Derived attack calculations update in real-time</span>
+        </button>
+      </footer>
+
+      <!-- Drawer + floating trigger live at the root so position:fixed works -->
+      <app-code-peeker />
+    </div>
+  `,
+  styles: [`
+    .app-viewport {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .main-content {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1.15fr;   /* customizer | hero */
+      gap: 1.5rem;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 1.25rem 1.5rem;
+      align-items: start;
+    }
+
+    .stage-column { width: 100%; min-width: 0; }
+
+    .concept-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      max-width: 1440px;
+      margin: 0 auto 1.25rem auto;
+      width: 100%;
+      padding: 0 1.5rem;
+    }
+
+    .concept-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.5rem;
+      padding: 0.65rem 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+      color: inherit;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .concept-card:hover {
+      border-color: var(--accent-cyan);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(56, 189, 248, 0.2);
+    }
+
+    .concept-pill { align-self: flex-start; font-weight: 700; }
+    .concept-note { font-size: 0.72rem; color: #94A3B8; line-height: 1.3; }
+
+    @media (max-width: 1080px) {
+      .main-content { grid-template-columns: 1fr; }
+      .canvas-stage { order: -1; }              /* hero first on tablets/phones */
+      .concept-strip { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .main-content { padding: 0.75rem; }
+      .concept-strip { grid-template-columns: 1fr; padding: 0 0.75rem; }
+    }
+  `]
+})
+export class AppComponent {
+  state = inject(CharacterStateService);
+
+  openConcept(tab: CodeTab): void {
+    this.state.openCodePeekerWithTab(tab);
+  }
+}
+</file>
+
+<file path="src/app/app.config.ts">
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideZoneChangeDetection({ eventCoalescing: true })]
+};
+</file>
+
+<file path="src/index.html">
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>⚡ 2D Game Character Customizer & Angular Code Peeker</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- Google Fonts: Outfit for game UI, JetBrains Mono for Code Peeker, Orbitron/Cinzel for RPG headings -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body class="bg-game-dark text-slate-100 antialiased selection:bg-cyan-500 selection:text-black">
+  <app-root></app-root>
+</body>
+</html>
+</file>
+
+<file path="src/main.ts">
+import { bootstrapApplication } from '@angular/platform-browser';
+import { appConfig } from './app/app.config';
+import { AppComponent } from './app/app.component';
+
+bootstrapApplication(AppComponent, appConfig)
+  .catch((err) => console.error(err));
+</file>
+
+<file path="src/styles.css">
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Typography */
+  --font-ui: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-code: 'JetBrains Mono', monospace;
+  --font-rpg: 'Cinzel', serif;
+
+  /* Bright midnight background */
+  --bg-space: #080b22;
+  --bg-surface: #11163a;
+  --bg-card: rgba(20, 28, 67, 0.78);
+  --bg-card-hover: rgba(34, 45, 101, 0.9);
+  --bg-card-active: rgba(29, 55, 112, 0.94);
+
+  /* Borders */
+  --border-dim: rgba(255, 255, 255, 0.13);
+  --border-subtle: #2f3d7c;
+  --border-focus: #38e8ff;
+
+  /* Bright accent palette */
+  --accent-cyan: #38e8ff;
+  --accent-neon-yellow: #ffe45c;
+  --accent-purple: #b58cff;
+  --accent-flame: #ff8a4c;
+  --accent-emerald: #45f0b0;
+  --accent-rose: #ff6fae;
+
+  /* Shadows and glow */
+  --shadow-card:
+    0 14px 34px -8px rgba(0, 0, 0, 0.58),
+    0 0 1px 1px rgba(255, 255, 255, 0.08);
+  --glow-cyan: 0 0 24px rgba(56, 232, 255, 0.42);
+
+  --code-font-size: 0.88rem;
+  --code-line-height: 1.6;
+}
+
+/* Presenter Mode Overrides */
+.presenter-mode {
+  --code-font-size: 1.15rem !important;
+  --code-line-height: 1.75 !important;
+  --border-dim: rgba(56, 232, 255, 0.4) !important;
+  --bg-card: rgba(17, 24, 58, 0.96) !important;
+}
+
+/* Reset & Base Setup */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-space);
+  color: #f4f7ff;
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 60% 42% at 50% -10%, rgba(56, 232, 255, 0.22), transparent),
+    radial-gradient(ellipse 45% 32% at 100% 100%, rgba(181, 140, 255, 0.2), transparent),
+    radial-gradient(ellipse 35% 28% at 0% 85%, rgba(255, 111, 174, 0.12), transparent);
+  background-attachment: fixed;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-space);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4c5db0;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent-cyan);
+}
+
+/* Typography Helpers */
+.font-rpg {
+  font-family: var(--font-rpg);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.font-code {
+  font-family: var(--font-code);
+}
+
+/* Glass Cards */
+.card-glass {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-dim);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.card-glass-interactive {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-dim);
+  border-radius: 0.65rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+
+.card-glass-interactive:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-cyan);
+  transform: translateY(-2px);
+  box-shadow:
+    0 14px 28px -8px rgba(0, 0, 0, 0.62),
+    0 0 20px rgba(56, 232, 255, 0.3);
+}
+
+.card-active {
+  background: var(--bg-card-active) !important;
+  border-color: var(--accent-cyan) !important;
+  box-shadow: 0 0 20px rgba(56, 232, 255, 0.42) !important;
+}
+
+/* Concept Badges */
+.pill-signal,
+.pill-computed,
+.pill-twoway,
+.pill-directive {
+  font-family: var(--font-code);
+  font-size: 0.7rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 600;
+}
+
+.pill-signal {
+  background: rgba(255, 111, 174, 0.14);
+  color: var(--accent-rose);
+  border: 1px solid rgba(255, 111, 174, 0.35);
+}
+
+.pill-computed {
+  background: rgba(181, 140, 255, 0.14);
+  color: var(--accent-purple);
+  border: 1px solid rgba(181, 140, 255, 0.35);
+}
+
+.pill-twoway {
+  background: rgba(255, 228, 92, 0.14);
+  color: var(--accent-neon-yellow);
+  border: 1px solid rgba(255, 228, 92, 0.36);
+}
+
+.pill-directive {
+  background: rgba(56, 232, 255, 0.14);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(56, 232, 255, 0.36);
+}
+
+/* Animations */
+.anim-attacking {
+  animation: attackSlash 0.45s ease-in-out;
+}
+
+.float-bob {
+  animation: floatBob 3.5s ease-in-out infinite;
+}
+
+.float-bob.anim-attacking {
+  animation: attackSlash 0.45s ease-in-out;
+}
+
+@keyframes floatBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes attackSlash {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+
+  30% {
+    transform: rotate(-25deg) scale(1.1) translateX(8px);
+  }
+
+  60% {
+    transform: rotate(35deg) scale(1.15) translateX(20px);
+  }
+
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+}
+</file>
+
+<file path=".editorconfig">
+# Editor configuration, see https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.ts]
+quote_type = single
+ij_typescript_use_double_quotes = false
+
+[*.md]
+max_line_length = off
+trim_trailing_whitespace = false
+</file>
+
+<file path=".gitignore">
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# System files
+.DS_Store
+Thumbs.db
+</file>
+
+<file path="angular.json">
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "packageManager": "npm"
+  },
+  "newProjectRoot": "projects",
+  "projects": {
+    "game-character-customizer": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "",
+      "sourceRoot": "src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/game-character-customizer",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "16kB",
+                  "maximumError": "32kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "game-character-customizer:build:production"
+            },
+            "development": {
+              "buildTarget": "game-character-customizer:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "public"
+              }
+            ],
+            "styles": [
+              "src/styles.css"
+            ],
+            "scripts": []
+          }
+        }
+      }
+    }
+  }
+}
+</file>
+
+<file path="package.json">
+{
+  "name": "game-character-customizer",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "dependencies": {
+    "@angular/common": "^19.2.0",
+    "@angular/compiler": "^19.2.0",
+    "@angular/core": "^19.2.0",
+    "@angular/forms": "^19.2.0",
+    "@angular/platform-browser": "^19.2.0",
+    "@angular/platform-browser-dynamic": "^19.2.0",
+    "@angular/router": "^19.2.0",
+    "@types/canvas-confetti": "^1.9.0",
+    "canvas-confetti": "^1.9.4",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "zone.js": "~0.15.0"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "^19.2.27",
+    "@angular/cli": "^19.2.27",
+    "@angular/compiler-cli": "^19.2.0",
+    "@types/jasmine": "~5.1.0",
+    "jasmine-core": "~5.6.0",
+    "karma": "~6.4.0",
+    "karma-chrome-launcher": "~3.2.0",
+    "karma-coverage": "~2.2.0",
+    "karma-jasmine": "~5.1.0",
+    "karma-jasmine-html-reporter": "~2.1.0",
+    "typescript": "~5.7.2"
+  }
+}
+</file>
+
+<file path="README.md">
+# HERO FORGE
+
+Angular 18+ Interactive Character Customizer built for tech festival demo.
+
+Demonstrates: Standalone Components, Signals, Two-Way Binding, Control Flow.
+</file>
+
+<file path="tsconfig.app.json">
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/app",
+    "types": []
+  },
+  "files": [
+    "src/main.ts"
+  ],
+  "include": [
+    "src/**/*.d.ts"
+  ]
+}
+</file>
+
+<file path="tsconfig.json">
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist/out-tsc",
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "moduleResolution": "bundler",
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "ESNext"
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}
+</file>
+
+<file path="tsconfig.spec.json">
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./out-tsc/spec",
+    "types": [
+      "jasmine"
+    ]
+  },
+  "include": [
+    "src/**/*.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}
+</file>
+
+</files>

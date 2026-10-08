@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Typography */
+  --font-ui: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-code: 'JetBrains Mono', ui-monospace, monospace;
+  --font-rpg: 'Cinzel', serif;
+
+  /* Neutral surfaces (professional dark slate) */
+  --bg-base: #0d1117;
+  --bg-surface: #151a21;
+  --bg-panel: #1a2029;
+  --bg-elevated: #212934;
+  --bg-input: #11161d;
+
+  /* Borders */
+  --border-subtle: #262d38;
+  --border-strong: #333d4b;
+  --border-dim: #262d38;
+  --border-focus: #4c8dff;
+
+  /* Text */
+  --text-primary: #e6edf3;
+  --text-secondary: #9aa6b2;
+  --text-muted: #6b7684;
+
+  /* Single restrained accent + supporting hues */
+  --accent: #4c8dff;
+  --accent-hover: #6ba1ff;
+  --accent-soft: rgba(76, 141, 255, 0.12);
+  --accent-line: rgba(76, 141, 255, 0.32);
+  --accent-amber: #d3a343;
+  --accent-teal: #2fa08a;
+  --accent-violet: #8b7cf0;
+  --accent-rose: #d9636f;
+
+  /* Legacy aliases so no component breaks */
+  --bg-space: var(--bg-base);
+  --bg-card: var(--bg-surface);
+  --bg-card-hover: var(--bg-elevated);
+  --bg-card-active: rgba(76, 141, 255, 0.10);
+  --accent-cyan: var(--accent);
+  --accent-neon-yellow: var(--accent-amber);
+  --accent-purple: var(--accent-violet);
+  --accent-flame: #d98246;
+  --accent-emerald: var(--accent-teal);
+
+  --shadow-card: 0 10px 28px -12px rgba(0, 0, 0, 0.7);
+  --glow-cyan: 0 0 0 1px rgba(76, 141, 255, 0.25);
+
+  --code-font-size: 0.85rem;
+  --code-line-height: 1.65;
+}
+
+/* Presenter Mode: larger, higher contrast, no neon */
+.presenter-mode {
+  --code-font-size: 1.1rem !important;
+  --code-line-height: 1.8 !important;
+  --border-subtle: #3b4654 !important;
+  --border-dim: #3b4654 !important;
+  --text-secondary: #b9c4d0 !important;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  min-height: 100vh;
+  background-image:
+    radial-gradient(ellipse 70% 45% at 50% -15%, rgba(76, 141, 255, 0.09), transparent),
+    radial-gradient(ellipse 50% 35% at 100% 110%, rgba(139, 124, 240, 0.06), transparent);
+  background-attachment: fixed;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: #333d4b;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #47536580;
+}
+
+/* Typography helpers */
+.font-rpg {
+  font-family: var(--font-rpg);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.font-code {
+  font-family: var(--font-code);
+}
+
+/* Surfaces */
+.card-glass {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.75rem;
+  box-shadow: var(--shadow-card);
+}
+
+.card-glass-interactive {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.6rem;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+  cursor: pointer;
+}
+
+.card-glass-interactive:hover {
+  background: var(--bg-elevated);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+.card-active {
+  background: var(--accent-soft) !important;
+  border-color: var(--accent-line) !important;
+  box-shadow: inset 0 0 0 1px rgba(76, 141, 255, 0.18) !important;
+}
+
+/* Animations */
+.anim-attacking {
+  animation: attackSlash 0.45s ease-in-out;
+}
+
+.float-bob {
+  animation: floatBob 4s ease-in-out infinite;
+}
+
+.float-bob.anim-attacking {
+  animation: attackSlash 0.45s ease-in-out;
+}
+
+@keyframes floatBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+@keyframes attackSlash {
+  0% { transform: rotate(0deg) scale(1); }
+  30% { transform: rotate(-22deg) scale(1.08) translateX(8px); }
+  60% { transform: rotate(30deg) scale(1.12) translateX(18px); }
+  100% { transform: rotate(0deg) scale(1); }
+}
